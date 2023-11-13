@@ -1,3 +1,6 @@
-<div>
+<div hx-boost="true">
     This is a quick test to see if AJAX requests with htmx work.
+    <form action="./">
+        <button type="submit">Go back</button>
+    </form>
 </div>
