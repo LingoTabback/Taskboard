@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spalten</title>
+    <link href="https://unpkg.com/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="Style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script
+            src="https://unpkg.com/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+    </script>
+</head>
+<body>
+    <!-- Navigationsleiste -->
+    <nav class="navbar navbar-expand-sm">
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="navbar-brand" href="WE_Logo.svg">
+                        <img src="WE_Logo.svg" alt="Logo" width="180" height="70">
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Tasks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Boards</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="Spalten.html">Spalten</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!--Spalten Card -->
+    <div class="container-fluid">
+        <div class="card mt-3">
+            <h5 class="card-header">Spalten</h5>
+            <div class="card-body">
+                <button type="button" class="btn btn-primary btn-sm mb-2">
+                    <a href="Formular.html" class="text-white text-decoration-none">Erstellen</a>
+                </button>
+                <!--Tabelle -->
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Board</th>
+                        <th>Sortid</th>
+                        <th>Spalte</th>
+                        <th>Spaltenbeschreibung</th>
+                        <th>Bearbeiten</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Allgemeine Todos</td>
+                            <td>100</td>
+                            <td>Zu besprechen</td>
+                            <td>Noch zu besprechende Todos</td>
+                            <td>
+                                <button class="btn">
+                                    <i class="fas fa-edit text-primary" style="font-size: 1em"></i>
+                                </button>
+                                <button class="btn">
+                                    <i class="fas fa-trash text-primary" style="font-size: 1em"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Allgemeine Todos</td>
+                            <td>200</td>
+                            <td>In Bearbeitung</td>
+                            <td>Todos die aktuell bearbeitet werden</td>
+                            <td>
+                                <button class="btn">
+                                    <i class="fas fa-edit text-primary" style="font-size: 1em"></i>
+                                </button>
+                                <button class="btn">
+                                    <i class="fas fa-trash text-primary" style="font-size: 1em"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!--Footer -->
+    <footer class="text-white pt-4 pb-1">
+        <div class="container-fluid">
+            <div class="row m-0">
+                <div class="col">
+                    <p class="p-2 pb-1 pt-1">&copy;Web Entwicklung Team 2023</p>
+                </div>
+                <div class="col d-flex justify-content-end">
+                    <a class="p-2 pb-1 pt-1 text-white text-decoration-none" href="#">Impressum </a>
+                    <a class="p-2 pb-1 pt-1 text-white text-decoration-none" href="#">Datenschutz </a>
+                    <a class="p-2 pb-1 pt-1 text-white text-decoration-none" href="#">Kontakt </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
