@@ -1,17 +1,18 @@
-.navbar{
-    background-color: #002060;
+:scope{
+    --accent-bg: rgb(0, 32, 96);
+    --accent-bg-rgb: 0, 32, 96;
 }
-.nav-link{
+
+.navlink-inactive{
     color: white;
-    padding-left: 17px;
-    padding-top: 23px;
-    padding-right: 2px;
 }
-.card-header{
-    background-color: white;
+
+.bg-header{
+    background: var(--accent-bg);
 }
+
 footer{
-    background-color: #002060;
+    background: var(--accent-bg);
     position: fixed;
     bottom: 0;
     width: 100%;
