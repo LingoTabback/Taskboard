@@ -1,0 +1,26 @@
+header{
+    background-color: #002060;
+}
+.navbar{
+    background-color: #002060;
+}
+.nav-link.active{
+    color: white;
+    padding-left: 17px;
+    padding-top: 23px;
+    padding-right: 2px;
+}
+.nav-link{
+    color: lightslategray;
+    padding-left: 17px;
+    padding-top: 23px;
+    padding-right: 2px;
+}
+.card-header{
+    background-color: white;
+}
+footer{
+    background-color: #002060;
+    bottom: 0;
+    width: 100%;
+}
