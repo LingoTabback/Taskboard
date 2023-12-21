@@ -2,9 +2,14 @@
 
 namespace App\Controllers;
 
-class viewTemplate extends BaseController
+class Uebung3 extends BaseController
 {
-    public function getconstruct(): void
+    public function getviewGruppennummer(): void
+    {
+        var_dump(21);
+    }
+
+    public function getIndex(): void
     {
         echo view('templates/head');
         echo view('templates/menu');
