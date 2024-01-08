@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Controllers;
+use App\Models\TasksModel;
 
-class Uebung3 extends BaseController
+class Uebung5 extends BaseController
 {
     public function getviewGruppennummer(): void
     {
@@ -11,8 +12,8 @@ class Uebung3 extends BaseController
 
     public function getIndex(): void
     {
-        echo view('templates/head');
-        echo view('templates/menu');
-        echo view('templates/footer');
+        $model = new TasksModel();
+        $test = $model->getTasksFromBoard(1);
+        var_dump($test);
     }
 }
