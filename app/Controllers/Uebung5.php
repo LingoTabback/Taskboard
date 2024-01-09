@@ -13,7 +13,15 @@ class Uebung5 extends BaseController
     public function getIndex(): void
     {
         $model = new TasksModel();
-        $test = $model->getTasksFromBoard(1);
-        var_dump($test);
+
+        echo view('templates/head');
+        echo view('templates/menu');
+
+        $tasks = $model->getTasksFromBoard(1);
+        $data = ['tasks' => $tasks];
+        echo view('templates/task_cards_test', $data);
+
+        echo view('templates/footer');
+
     }
 }

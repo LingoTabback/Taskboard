@@ -6,6 +6,13 @@ class TasksModel extends Model
 {
     public function getTasksFromBoard(int $boardId) : array
     {
-        return $this->db->query("SELECT t.* FROM tasks t JOIN spalten s ON t.spaltenid = s.id WHERE s.boardsid = $boardId")->getResultArray();
+        return $this->db->query("
+                SELECT t.*, s.spalte, p.name, p.vorname, ta.taskart
+                FROM tasks t JOIN spalten s ON t.spaltenid = s.id
+                JOIN personen p ON t.personenid = p.id
+                JOIN taskarten ta ON t.taskartenid = ta.id
+                WHERE s.boardsid = $boardId
+                ORDER BY t.tasks")
+            ->getResultArray();
     }
 }
