@@ -41,4 +41,27 @@ class Validation extends BaseConfig
     // --------------------------------------------------------------------
     // Rules
     // --------------------------------------------------------------------
+
+    public array $taskCreate = [
+        'task' => 'required|string|min_length[1]|max_length[255]',
+        'columnid' => 'required|is_natural_no_zero',
+        'personid' => 'required|is_natural_no_zero',
+        'reminderdate' => 'required|valid_date[d.m.Y]',
+        'remindertime' => 'required|valid_date[H:i]',
+        'reminderuse' => 'permit_empty|in_list[0,1]',
+        'notes' => 'permit_empty|string'
+    ];
+
+    public array $taskEdit = [
+        'task' => 'required|string|min_length[1]|max_length[255]',
+        'columnid' => 'required|is_natural_no_zero',
+        'personid' => 'required|is_natural_no_zero',
+        'reminderdate' => 'required|valid_date[d.m.Y]',
+        'remindertime' => 'required|valid_date[H:i]',
+        'reminderuse' => 'permit_empty|in_list[0,1]',
+        'notes' => 'permit_empty|string'
+    ];
+
+    public array $taskDelete = [
+    ];
 }

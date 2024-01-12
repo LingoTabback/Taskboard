@@ -67,11 +67,14 @@
             color: #dd4814;
         }
     </style>
+    <style>
+        .meme { width: 20%; height: auto; margin-bottom: 3% }
+    </style>
 </head>
 <body>
     <div class="wrap">
+        <img class="meme" src="<?=base_url('Searching.gif')?>" alt="John Travolta searching">
         <h1>404</h1>
-
         <p>
             <?php if (ENVIRONMENT !== 'production') : ?>
                 <?= nl2br(esc($message)) ?>
