@@ -81,10 +81,10 @@ CREATE TABLE `spalten` (
 
 INSERT INTO `spalten` (`id`, `boardsid`, `sortid`, `spalte`, `spaltenbeschreibung`) VALUES
 (1, 1, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen'),
-(2, 1, 1, 'In Bearbeitung', 'Be­ar­bei­tung, die; Substantiv, feminin'),
+(2, 1, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin'),
 (3, 1, 3, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen'),
 (4, 2, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen'),
-(5, 2, 1, 'In Bearbeitung', 'Be­ar­bei­tung, die; Substantiv, feminin'),
+(5, 2, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin'),
 (6, 2, 3, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen');
 
 -- --------------------------------------------------------
