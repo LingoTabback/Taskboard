@@ -1,26 +1,41 @@
-header{
-    background-color: #002060;
+.navbar {
+    box-shadow: 0 5px 6px rgba(55,94,148, 0.3);
 }
-.navbar{
-    background-color: #002060;
+
+body {
+    min-height: 75rem;
+    padding-top: 4.5rem;
 }
-.nav-link.active{
+
+/*.navbar{
+    background-color: #002060;
+}*/
+/*.nav-link.active{
     color: white;
     padding-left: 17px;
     padding-top: 23px;
     padding-right: 2px;
-}
-.nav-link{
+}*/
+/*.nav-link{
     color: lightslategray;
     padding-left: 17px;
     padding-top: 23px;
     padding-right: 2px;
-}
-.card-header{
+}*/
+
+/*.card-header{
     background-color: white;
-}
+}*/
+
 footer{
-    background-color: #002060;
     bottom: 0;
     width: 100%;
+    box-shadow: 0 -5px 6px rgba(55,94,148, 0.3);
+}
+
+.bg-success-subtle2 {
+    background-color: var(--bs-success-bg-subtle);
+}
+.bg-danger-subtle2 {
+    background-color: var(--bs-danger-bg-subtle);
 }
