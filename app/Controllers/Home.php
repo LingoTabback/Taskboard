@@ -8,6 +8,6 @@ class Home extends BaseController
 {
     public function index(): RedirectResponse
     {
-        return redirect()->to(base_url("uebung5"));
+        return redirect()->to(base_url("tasks"));
     }
 }

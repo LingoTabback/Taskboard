@@ -8,13 +8,16 @@ use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
 use DateTime;
 
-class Uebung5 extends BaseController
+class Tasks extends BaseController
 {
+
+    private string $thisURL = 'tasks';
+
     public function getIndex(): RedirectResponse
     {
         $model = new TasksModel();
         $firstBoard = $model->getAllBoards()[0]->id;
-        return redirect()->to(base_url("uebung5/board/$firstBoard"));
+        return redirect()->to(base_url("$this->thisURL/board/$firstBoard"));
     }
 
     public function getBoard(int $boardId): void
@@ -26,27 +29,34 @@ class Uebung5 extends BaseController
             'tasks' => $model->getDisplayTasksFromBoard($boardId),
             'boards' => $model->getAllBoards(),
             'activeBoard' => $activeBoard,
-            'boardsURL' => base_url('uebung5/board'),
-            'taskCreateURL' => base_url("uebung5/create/$boardId"),
-            'taskEditURL' => base_url('uebung5/edit'),
-            'taskDeleteURL' => base_url('uebung5/delete'),
+            'boardsURL' => base_url("$this->thisURL/board"),
+            'taskCreateURL' => base_url("$this->thisURL/create/$boardId"),
+            'taskEditURL' => base_url("$this->thisURL/edit"),
+            'taskDeleteURL' => base_url("$this->thisURL/delete"),
         ];
 
         echo view('templates/head', ['title' => $activeBoard->name]);
-        echo view('templates/menu');
+        echo view('templates/menu', ['activeIndex' => 0]);
         echo view('templates/task_cards_test', $data);
         echo view('templates/footer');
     }
 
     public function getCreate(int $boardId): void
     {
+        helper('form');
+
         $model = new TasksModel();
         $dataCreate = [
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
-            'submitURL' => base_url("uebung5/docreate/$boardId"),
-            'abortURL' => base_url("uebung5/board/$boardId")
+            'submitURL' => base_url("$this->thisURL/docreate/$boardId"),
+            'abortURL' => base_url("$this->thisURL/board/$boardId"),
+            'errorMessages' => esc(validation_errors())
         ];
+        $oldInput = session('_ci_old_input');
+        if (isset($oldInput['post']))
+            $dataCreate['oldPost'] = esc($oldInput['post']);
+
         $dataHeader = [
             'title' => 'Task erstellen',
             'styles' => [
@@ -58,13 +68,15 @@ class Uebung5 extends BaseController
             ]
         ];
         echo view('templates/head', $dataHeader);
-        echo view('templates/menu');
-        echo view('templates/task_create_test', $dataCreate);
+        echo view('templates/menu', ['activeIndex' => 0]);
+        echo view('templates/task_create', $dataCreate);
         echo view('templates/footer');
     }
 
     public function getEdit(int $taskId): void
     {
+        helper('form');
+
         $model = new TasksModel();
         $board = $model->getBoardFromTask($taskId);
         $boardId = $board->id;
@@ -72,9 +84,14 @@ class Uebung5 extends BaseController
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'activeTask' => $model->getTask($taskId),
-            'submitURL' => base_url("uebung5/doedit/$taskId"),
-            'abortURL' => base_url("uebung5/board/$boardId")
+            'submitURL' => base_url("$this->thisURL/doedit/$taskId"),
+            'abortURL' => base_url("$this->thisURL/board/$boardId"),
+            'errorMessages' => esc(validation_errors())
         ];
+        $oldInput = session('_ci_old_input');
+        if (isset($oldInput['post']))
+            $dataCreate['oldPost'] = esc($oldInput['post']);
+
         $dataHeader = [
             'title' => 'Task bearbeiten',
             'styles' => [
@@ -86,8 +103,8 @@ class Uebung5 extends BaseController
             ]
         ];
         echo view('templates/head', $dataHeader);
-        echo view('templates/menu');
-        echo view('templates/task_create_test', $dataCreate);
+        echo view('templates/menu', ['activeIndex' => 0]);
+        echo view('templates/task_create', $dataCreate);
         echo view('templates/footer');
     }
 
@@ -101,8 +118,8 @@ class Uebung5 extends BaseController
             'columns' => $model->getColsFromBoard($boardId),
             'activeTask' => $model->getTask($taskId),
             'isDelete' => TRUE,
-            'submitURL' => base_url("uebung5/dodelete/$taskId"),
-            'abortURL' => base_url("uebung5/board/$boardId")
+            'submitURL' => base_url("$this->thisURL/dodelete/$taskId"),
+            'abortURL' => base_url("$this->thisURL/board/$boardId")
         ];
         $dataHeader = [
             'title' => 'Task löschen',
@@ -115,17 +132,17 @@ class Uebung5 extends BaseController
             ]
         ];
         echo view('templates/head', $dataHeader);
-        echo view('templates/menu');
-        echo view('templates/task_create_test', $dataCreate);
+        echo view('templates/menu', ['activeIndex' => 0]);
+        echo view('templates/task_create', $dataCreate);
         echo view('templates/footer');
     }
 
     public function postDoCreate(int $boardId): RedirectResponse
     {
         $validation = Services::validation();
-        $validation->setRuleGroup('taskCreate');
+        $validation->setRuleGroup('taskCreateAndEdit');
         if (!$validation->withRequest($this->request)->run())
-            return redirect()->to(base_url("uebung5/board/$boardId"));
+            return redirect()->back()->withInput();
 
         $validData = $validation->getValidated();
         $task = new Task();
@@ -140,7 +157,7 @@ class Uebung5 extends BaseController
 
         $model = new TasksModel();
         $model->insertTask($task);
-        return redirect()->to(base_url("uebung5/board/$boardId"));
+        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
     }
 
     public function postDoEdit(int $taskId): RedirectResponse
@@ -150,9 +167,9 @@ class Uebung5 extends BaseController
         $boardId = $board->id;
 
         $validation = Services::validation();
-        $validation->setRuleGroup('taskEdit');
+        $validation->setRuleGroup('taskCreateAndEdit');
         if (!$validation->withRequest($this->request)->run())
-            return redirect()->to(base_url("uebung5/board/$boardId"));
+            return redirect()->back()->withInput();
 
         $validData = $validation->getValidated();
 
@@ -165,7 +182,7 @@ class Uebung5 extends BaseController
         $task->useReminder = isset($validData['reminderuse']) && $validData['reminderuse'];
 
         $model->editTask($task);
-        return redirect()->to(base_url("uebung5/board/$boardId"));
+        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
     }
 
     public function postDoDelete(int $taskId): RedirectResponse
@@ -174,8 +191,7 @@ class Uebung5 extends BaseController
         $board = $model->getBoardFromTask($taskId);
         $boardId = $board->id;
 
-        $model = new TasksModel();
         $model->removeTask($taskId);
-        return redirect()->to(base_url("uebung5/board/$boardId"));
+        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
     }
 }

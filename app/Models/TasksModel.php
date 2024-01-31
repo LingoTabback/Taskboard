@@ -2,10 +2,12 @@
 namespace App\Models;
 use App\DatabaseObjects\Board;
 use App\DatabaseObjects\Column;
+use App\DatabaseObjects\DisplayColumn;
 use App\DatabaseObjects\DisplayTask;
 use App\DatabaseObjects\Task;
 use App\DatabaseObjects\TaskType;
 use App\DatabaseObjects\User;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\Model;
 
 class TasksModel extends Model
@@ -61,12 +63,33 @@ class TasksModel extends Model
         return $result ? Board::fromArray($result) : null;
     }
 
+    public function getBoardFromColumn(int $columnId): Board | null
+    {
+        $result = $this->db->query("
+                SELECT b.* FROM spalten s JOIN boards b on b.id = s.boardsid WHERE s.id = $columnId")->getRowArray(0);
+        return $result ? Board::fromArray($result) : null;
+    }
+
+    public function getColumn(int $columnId): Column | null
+    {
+        $result = $this->db->query("SELECT * FROM spalten WHERE id = $columnId")->getRowArray(0);
+        return $result ? Column::fromArray($result) : null;
+    }
+
     /**
      * @return Column[]
      */
     public function getColsFromBoard(int $boardId): array
     {
         return $this->db->query("SELECT * FROM spalten WHERE boardsid = $boardId")->getCustomResultObject(Column::class);
+    }
+
+    /**
+     * @return DisplayColumn[]
+     */
+    public function getDisplayColsFromBoard(int $boardId): array
+    {
+        return $this->db->query("SELECT c.*, b.board FROM spalten c JOIN boards b on b.id = c.boardsid WHERE boardsid = $boardId")->getCustomResultObject(DisplayColumn::class);
     }
 
     /**
@@ -125,11 +148,39 @@ class TasksModel extends Model
                     erinnerung = $useReminder,
                     erledigt = $isDone,
                     geloescht = $isDeleted
-                WHERE id = {$task->id}");
+                WHERE id = $task->id");
     }
 
     public function removeTask(int $taskId): bool
     {
-        return $this->db->query("DELETE FROM tasks WHERE id = {$taskId}");
+        return $this->db->query("DELETE FROM tasks WHERE id = $taskId");
+    }
+
+    public function insertColumn(Column $column): bool
+    {
+        return $this->db->query("
+                INSERT INTO spalten (boardsid, sortid, spalte, spaltenbeschreibung)
+                VALUES ($column->boradId, $column->sortId,' $column->name', '$column->description')");
+    }
+
+    public function editColumn(Column $column): bool
+    {
+        return $this->db->query("
+                UPDATE spalten
+                SET sortid = $column->sortId,
+                    spalte = '$column->name',
+                    spaltenbeschreibung = '$column->description'
+                WHERE id = $column->id");
+    }
+
+    public function removeColumn(int $columnId): bool
+    {
+        try
+        {
+            return $this->db->query("DELETE FROM spalten WHERE id = $columnId");
+        } catch (DatabaseException $e)
+        {
+            return FALSE;
+        }
     }
 }

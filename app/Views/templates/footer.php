@@ -1,8 +1,8 @@
-<footer class="footer mt-auto text-white">
+<footer class="footer mt-auto bg-primary text-white" data-bs-theme="dark">
     <div class="container-fluid mt-3">
         <div class="row m-0">
             <div class="col">
-                <p class="p-2 pt-1 pb-0">&copy;Web Entwicklung 2023</p>
+                <p class="p-2 pt-1 pb-0">&copy;Web Entwicklung <?= (new DateTime())->format('Y') ?></p>
             </div>
             <div class="col d-flex justify-content-end">
                 <a class="p-2 text-white text-decoration-none" href="#">Impressum </a>
