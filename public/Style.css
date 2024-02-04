@@ -7,35 +7,33 @@ body {
     padding-top: 4.5rem;
 }
 
-/*.navbar{
-    background-color: #002060;
-}*/
-/*.nav-link.active{
-    color: white;
-    padding-left: 17px;
-    padding-top: 23px;
-    padding-right: 2px;
-}*/
-/*.nav-link{
-    color: lightslategray;
-    padding-left: 17px;
-    padding-top: 23px;
-    padding-right: 2px;
-}*/
-
-/*.card-header{
-    background-color: white;
-}*/
-
-footer{
+footer {
     bottom: 0;
     width: 100%;
     box-shadow: 0 -5px 6px rgba(55,94,148, 0.3);
 }
 
-.bg-success-subtle2 {
-    background-color: var(--bs-success-bg-subtle);
+.personlogo {
+    text-align: center;
+    padding-top: 0.4em;
+    height: 2.5em;
+    width: 2.5em;
 }
-.bg-danger-subtle2 {
-    background-color: var(--bs-danger-bg-subtle);
+
+input, textarea, select {
+    color: var(--bs-body-color) !important;
+    background-color: rgb(30, 30, 35) !important;
+}
+
+fieldset:disabled input, fieldset:disabled textarea, fieldset:disabled select {
+    color: var(--bs-tertiary-color)  !important;
+    background-color: var(--bs-secondary-bg) !important;
+}
+
+.taskcard {
+    background-color: rgb(30, 30, 35);
+}
+
+.header-column {
+    background-color: rgb(38, 38, 42);
 }
