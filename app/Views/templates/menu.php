@@ -19,7 +19,7 @@
                         <a class="nav-link <?php if ($activeIndex === 0) echo 'active'; ?>" href="<?=base_url('tasks')?>">Tasks</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php if ($activeIndex === 1) echo 'active'; ?>" href="#">Boards</a>
+                        <a class="nav-link <?php if ($activeIndex === 1) echo 'active'; ?>" href="<?=base_url('boards')?>">Boards</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?php if ($activeIndex === 2) echo 'active'; ?>" href="<?=base_url('columns')?>">Spalten</a>

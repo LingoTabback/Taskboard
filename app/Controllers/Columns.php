@@ -92,7 +92,7 @@ class Columns extends BaseController
             'submitURL' => base_url("$this->thisURL/dodelete/$columnId"),
             'abortURL' => base_url("$this->thisURL/board/$boardId")
         ];
-        echo view('templates/head', ['title' => 'Spalte bearbeiten']);
+        echo view('templates/head', ['title' => 'Spalte löschen']);
         echo view('templates/menu', ['activeIndex' => 2]);
         echo view('templates/column_create', $dataCreate);
         echo view('templates/footer');

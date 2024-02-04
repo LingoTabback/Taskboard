@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Controllers;
-use App\DatabaseObjects\DisplayTask;
 use App\DatabaseObjects\Task;
 use App\Models\TasksModel;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -26,6 +25,7 @@ class Tasks extends BaseController
         $activeBoard = $model->getBoard($boardId);
 
         $data = [
+            'columns' => $model->getColsFromBoard($boardId),
             'tasks' => $model->getDisplayTasksFromBoard($boardId),
             'boards' => $model->getAllBoards(),
             'activeBoard' => $activeBoard,
@@ -33,15 +33,16 @@ class Tasks extends BaseController
             'taskCreateURL' => base_url("$this->thisURL/create/$boardId"),
             'taskEditURL' => base_url("$this->thisURL/edit"),
             'taskDeleteURL' => base_url("$this->thisURL/delete"),
+            'columnCreateURL' => base_url("columns/create/$boardId")
         ];
 
         echo view('templates/head', ['title' => $activeBoard->name]);
         echo view('templates/menu', ['activeIndex' => 0]);
-        echo view('templates/task_cards_test', $data);
+        echo view('templates/task_cards', $data);
         echo view('templates/footer');
     }
 
-    public function getCreate(int $boardId): void
+    public function getCreate(int $boardId, int $columnId = 0): void
     {
         helper('form');
 
@@ -49,6 +50,7 @@ class Tasks extends BaseController
         $dataCreate = [
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
+            'selectedColId' => $columnId,
             'submitURL' => base_url("$this->thisURL/docreate/$boardId"),
             'abortURL' => base_url("$this->thisURL/board/$boardId"),
             'errorMessages' => esc(validation_errors())
@@ -57,17 +59,7 @@ class Tasks extends BaseController
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
-        $dataHeader = [
-            'title' => 'Task erstellen',
-            'styles' => [
-                ['link' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css']
-            ],
-            'scripts' => [
-                ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js'],
-                ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js']
-            ]
-        ];
-        echo view('templates/head', $dataHeader);
+        echo view('templates/head', ['title' => 'Task erstellen']);
         echo view('templates/menu', ['activeIndex' => 0]);
         echo view('templates/task_create', $dataCreate);
         echo view('templates/footer');
@@ -92,17 +84,7 @@ class Tasks extends BaseController
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
-        $dataHeader = [
-            'title' => 'Task bearbeiten',
-            'styles' => [
-                ['link' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css']
-            ],
-            'scripts' => [
-                ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js'],
-                ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js']
-            ]
-        ];
-        echo view('templates/head', $dataHeader);
+        echo view('templates/head', ['title' => 'Task bearbeiten']);
         echo view('templates/menu', ['activeIndex' => 0]);
         echo view('templates/task_create', $dataCreate);
         echo view('templates/footer');
@@ -121,17 +103,8 @@ class Tasks extends BaseController
             'submitURL' => base_url("$this->thisURL/dodelete/$taskId"),
             'abortURL' => base_url("$this->thisURL/board/$boardId")
         ];
-        $dataHeader = [
-            'title' => 'Task löschen',
-            'styles' => [
-                ['link' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css']
-            ],
-            'scripts' => [
-                ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js'],
-                ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js']
-            ]
-        ];
-        echo view('templates/head', $dataHeader);
+
+        echo view('templates/head', ['title' => 'Task löschen']);
         echo view('templates/menu', ['activeIndex' => 0]);
         echo view('templates/task_create', $dataCreate);
         echo view('templates/footer');
@@ -152,7 +125,7 @@ class Tasks extends BaseController
         $task->task = $validData['task'];
         $task->notes = $validData['notes'] ?? '';
         $task->createDate = new DateTime();
-        $task->remindDate = DateTime::createFromFormat('d.m.Y H:i', $validData['reminderdate'] . ' ' . $validData['remindertime']);
+        $task->remindDate = DateTime::createFromFormat('Y-m-d H:i', $validData['reminderdate'] . ' ' . $validData['remindertime']);
         $task->useReminder = isset($validData['reminderuse']) && $validData['reminderuse'];
 
         $model = new TasksModel();
@@ -178,7 +151,7 @@ class Tasks extends BaseController
         $task->columnId = $validData['columnid'];
         $task->task = $validData['task'];
         $task->notes = $validData['notes'] ?? '';
-        $task->remindDate = DateTime::createFromFormat('d.m.Y H:i', $validData['reminderdate'] . ' ' . $validData['remindertime']);
+        $task->remindDate =  DateTime::createFromFormat('Y-m-d H:i', $validData['reminderdate'] . ' ' . $validData['remindertime']);
         $task->useReminder = isset($validData['reminderuse']) && $validData['reminderuse'];
 
         $model->editTask($task);

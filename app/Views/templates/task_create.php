@@ -7,6 +7,7 @@ use App\DatabaseObjects\User;
 
 /* @var $users User[] */
 /* @var $columns Column[] */
+/* @var $selectedColId int */
 /* @var $activeTask Task */
 /* @var $submitURL string */
 /* @var $abortURL string */
@@ -18,6 +19,13 @@ $showDelete = isset($isDelete) && $isDelete;
 $showCreate = !$showDelete && !isset($activeTask);
 $showEdit = !$showCreate && !$showDelete && isset($activeTask);
 $remindDateTime = !$showCreate ? $activeTask->remindDate : new DateTime();
+
+if (!isset($selectedColId) || $selectedColId <= 0)
+    $selectedColId = $columns[0]->id;
+if (isset($oldPost['columnid']))
+    $selectedColId = (int)$oldPost['columnid'];
+if (!$showCreate)
+    $selectedColId = $activeTask->columnId;
 
 if (!isset($errorMessages))
     $errorMessages = [];
@@ -52,12 +60,12 @@ $hasErrors = !empty($errorMessages);
                                                value="<?php if (isset($oldPost['task'])) echo $oldPost['task']; elseif (!$showCreate) echo esc($activeTask->task); ?>"/>
                                         <?= InvalidFeedback::render($errorMessages, 'task') ?>
                                     </div>
-                                    <!-- Board -->
+                                    <!-- Spalte -->
                                     <div class="form-group has-validation mb-4">
-                                        <label for="columnid" class="form-label mb-0">Board & Spalte:</label>
+                                        <label for="columnid" class="form-label mb-0">Spalte:</label>
                                         <select name="columnid" id="columnid" class="form-select <?php if ($hasErrors && isset($errorMessages['columnid'])) echo 'is-invalid'; ?>">
                                             <?php foreach ($columns as $c): ?>
-                                                <option value="<?= esc($c->id) ?>" <?php if ((isset($oldPost['columnid']) && $oldPost['columnid'] == $c->id) || !$showCreate && $activeTask->columnId === $c->id) echo 'selected'; ?>><?= esc($c->name) ?></option>
+                                                <option value="<?= esc($c->id) ?>" <?php if ($selectedColId === $c->id) echo 'selected'; ?>><?= esc($c->name) ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <?= InvalidFeedback::render($errorMessages, 'columnid') ?>
@@ -81,9 +89,9 @@ $hasErrors = !empty($errorMessages);
                                                     <div class="input-group-text">
                                                         <span title="Erinnerungsdatum" data-bs-toggle="tooltip"><i class="far fa-calendar-alt"></i></span>
                                                     </div>
-                                                    <input type="text" data-provide="datepicker" class="form-control rounded-end <?php if ($hasErrors && isset($errorMessages['reminderdate'])) echo 'is-invalid'; ?>"
+                                                    <input type="date" class="form-control rounded-end <?php if ($hasErrors && isset($errorMessages['reminderdate'])) echo 'is-invalid'; ?>"
                                                            id="reminderdate" name="reminderdate"
-                                                           value="<?= $remindDateTime->format('d.m.Y') ?>">
+                                                           value="<?= $remindDateTime->format('Y-m-d') ?>">
                                                     <?= InvalidFeedback::render($errorMessages, 'reminderdate') ?>
                                                 </div>
                                             </div>
@@ -92,7 +100,7 @@ $hasErrors = !empty($errorMessages);
                                                     <div class="input-group-text">
                                                         <span title="Erinnerungsuhrzeit" data-bs-toggle="tooltip"><i class="far fa-clock"></i></span>
                                                     </div>
-                                                    <input type="text" class="form-control <?php if ($hasErrors && isset($errorMessages['remindertime'])) echo 'is-invalid'; ?>"
+                                                    <input type="time" class="form-control <?php if ($hasErrors && isset($errorMessages['remindertime'])) echo 'is-invalid'; ?>"
                                                            id="remindertime" name="remindertime"
                                                            value="<?= $remindDateTime->format('H:i') ?>">
                                                     <?= InvalidFeedback::render($errorMessages, 'remindertime') ?>
@@ -115,12 +123,12 @@ $hasErrors = !empty($errorMessages);
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <?php if ($showDelete): ?>
-                                            <button class="btn btn-danger bg-danger-subtle2 mb-2 me-2" type="submit">
+                                            <button class="btn btn-danger mb-2 me-2" type="submit">
                                                 <i class="fas fa-trash"></i>
                                                 <span class="d-none d-sm-inline-flex">Löschen</span>
                                             </button>
                                         <?php else: ?>
-                                        <button class="btn btn-success bg-success-subtle2 mb-2 me-2" type="submit">
+                                        <button class="btn btn-success mb-2 me-2" type="submit">
                                             <i class="fas fa-save"></i>
                                             <span class="d-none d-sm-inline-flex">Speichern</span>
                                         </button>
@@ -141,20 +149,3 @@ $hasErrors = !empty($errorMessages);
         </div>
     </div>
 </div>
-
-<script>
-    $('#reminderdate').datetimepicker({
-        timepicker: false,
-        yearStart: 2010,
-        format: 'd.m.Y',
-        scrollInput : false
-    });
-
-    $('#remindertime').datetimepicker({
-        datepicker: false,
-        timepicker: true,
-        Timeformat: 'G:i',
-        step: 15,
-        format: 'G:i'
-    });
-</script>

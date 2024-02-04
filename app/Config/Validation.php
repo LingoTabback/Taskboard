@@ -46,7 +46,7 @@ class Validation extends BaseConfig
         'task' => 'required|max_length[255]',
         'columnid' => 'required|is_natural_no_zero',
         'personid' => 'required|is_natural_no_zero',
-        'reminderdate' => 'required|valid_date[d.m.Y]',
+        'reminderdate' => 'required|valid_date[Y-m-d]',
         'remindertime' => 'required|valid_date[H:i]',
         'reminderuse' => 'permit_empty|in_list[0,1]',
         'notes' => 'permit_empty'
@@ -94,6 +94,17 @@ class Validation extends BaseConfig
         ],
         'sortid' => [
             'integer' => 'Sort ID muss eine ganze Zahl sein.',
+        ],
+    ];
+
+    public array $boardCreateAndEdit = [
+        'board' => 'required|string|max_length[255]'
+    ];
+
+    public array $boardCreateAndEdit_errors = [
+        'board' => [
+            'required' => 'Der Boardname muss ausgefüllt sein.',
+            'max_length[255]' => 'Der Boardname darf höchstens 255 Zeichen lang sein.'
         ],
     ];
 

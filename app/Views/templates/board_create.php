@@ -1,9 +1,9 @@
 <?php
 
-use App\DatabaseObjects\Column;
+use App\DatabaseObjects\Board;
 use App\Cells\InvalidFeedback;
 
-/* @var $activeColumn Column */
+/* @var $activeBoard Board */
 /* @var $submitURL string */
 /* @var $abortURL string */
 /* @var $isDelete bool */
@@ -11,8 +11,8 @@ use App\Cells\InvalidFeedback;
 /* @var $oldPost array<string, string> */
 
 $showDelete = isset($isDelete) && $isDelete;
-$showCreate = !$showDelete && !isset($activeColumn);
-$showEdit = !$showCreate && !$showDelete && isset($activeColumn);
+$showCreate = !$showDelete && !isset($activeBoard);
+$showEdit = !$showCreate && !$showDelete && isset($activeBoard);
 
 if (!isset($errorMessages))
     $errorMessages = [];
@@ -24,11 +24,11 @@ $hasErrors = !empty($errorMessages);
         <div class="card-header">
             <div class="d-flex justify-content-between">
                 <?php if ($showDelete): ?>
-                    <div class="h3">Spalte löschen</div>
+                    <div class="h3">Board löschen</div>
                 <?php elseif ($showCreate): ?>
-                    <div class="h3">Spalte erstellen</div>
+                    <div class="h3">Board erstellen</div>
                 <?php else: ?>
-                    <div class="h3">Spalte bearbeiten</div>
+                    <div class="h3">Board bearbeiten</div>
                 <?php endif; ?>
             </div>
         </div>
@@ -39,28 +39,13 @@ $hasErrors = !empty($errorMessages);
                         <div class="card-body">
                             <form id="form" action="<?= esc($submitURL) ?>" method="post">
                                 <fieldset <?php if ($showDelete) echo 'disabled'; ?>>
-                                    <!-- Spalte -->
+                                    <!-- Board -->
                                     <div class="form-group has-validation mb-4 mt-0">
-                                        <label for="column" class="form-label mb-0">Spalte:</label>
-                                        <input type="text" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['column'])) echo 'is-invalid'; ?>"
-                                               id="column" name="column" placeholder="Namen eingeben..."
-                                               value="<?php if (isset($oldPost['column'])) echo $oldPost['column']; elseif (!$showCreate) echo esc($activeColumn->name); ?>"/>
-                                        <?= InvalidFeedback::render($errorMessages, 'column') ?>
-                                    </div>
-                                    <!-- Beschreibung -->
-                                    <div class="form-group has-validation mb-4">
-                                        <label for="description" class="form-label mb-0">Spaltenbeschreibung:</label>
-                                            <textarea class="form-control <?php if ($hasErrors && isset($errorMessages['description'])) echo 'is-invalid'; ?>"
-                                                      rows="3" id="description" name="description" placeholder="Spaltenbeschreibung..."><?php if (isset($oldPost['description'])) echo $oldPost['description']; elseif (!$showCreate) echo esc($activeColumn->description); ?></textarea>
-                                        <?= InvalidFeedback::render($errorMessages, 'description') ?>
-                                    </div>
-                                    <!-- Sortid -->
-                                    <div class="form-group has-validation mb-4 mt-0">
-                                        <label for="sortid" class="form-label mb-0">Sort ID:</label>
-                                        <input type="number" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['sortid'])) echo 'is-invalid'; ?>"
-                                               id="sortid" name="sortid" placeholder="Sort ID..."
-                                               value="<?php if (isset($oldPost['sortid'])) echo $oldPost['sortid']; elseif (!$showCreate) echo esc($activeColumn->sortId); ?>"/>
-                                        <?= InvalidFeedback::render($errorMessages, 'sortid') ?>
+                                        <label for="board" class="form-label mb-0">Board:</label>
+                                        <input type="text" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['board'])) echo 'is-invalid'; ?> fs-input"
+                                               id="board" name="board" placeholder="Namen eingeben..."
+                                               value="<?php if (isset($oldPost['board'])) echo $oldPost['board']; elseif (!$showCreate) echo esc($activeBoard->name); ?>"/>
+                                        <?= InvalidFeedback::render($errorMessages, 'board') ?>
                                     </div>
                                 </fieldset>
                                 <div class="row">

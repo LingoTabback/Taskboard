@@ -14,7 +14,7 @@ use App\DatabaseObjects\DisplayColumn;
 
 <main role="main">
     <div class="d-flex p-3">
-        <button class="btn btn-outline-primary dropdown-toggle me-2" type="button" id="dropdownBoards" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-primary dropdown-toggle me-2" type="button" id="dropdownBoards" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <?= esc($activeBoard->name) ?>
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownBoards">
@@ -23,7 +23,7 @@ use App\DatabaseObjects\DisplayColumn;
             <?php endforeach; ?>
         </div>
         <a href="<?= esc($columnCreateURL) ?>">
-            <button class="btn btn-outline-primary me-2" type="button" id="btnCreateTask">Neue Spalte</button>
+            <button class="btn btn-primary me-2" type="button" id="btnCreateTask">Neue Spalte</button>
         </a>
     </div>
     <table class="table">

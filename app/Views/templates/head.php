@@ -5,10 +5,11 @@
 ?>
 
 <!DOCTYPE html>
-<html lang="de" class="h-100">
+<html lang="de" class="h-100" data-theme="dark" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <?php if (isset($title)): ?>
     <title><?= esc($title) ?></title>
     <?php endif; ?>

@@ -9,6 +9,7 @@ class DisplayTask extends Task
     public string $taskTypeName = '';
     public string $userFirstName = '';
     public string $userLastName = '';
+    public string $taskTypeIcon = '';
 
     public function __set(string $name, mixed $value): void
     {
@@ -25,6 +26,9 @@ class DisplayTask extends Task
                 break;
             case 'taskart':
                 $this->taskTypeName = (string)$value;
+                break;
+            case 'taskartenicon':
+                $this->taskTypeIcon = (string)$value;
                 break;
             default:
                 parent::__set($name, $value);
