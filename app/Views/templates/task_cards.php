@@ -14,11 +14,12 @@ use App\Cells\ColorUtils;
 /* @var $taskEditURL string */
 /* @var $taskDeleteURL string */
 /* @var $columnCreateURL string */
+/* @var $boardCreateURL string */
 ?>
 
 <main role="main">
     <div class="d-flex flex-row justify-content-center pt-5">
-        <div class="card" style="max-width: 75%; min-width: 25em;">
+        <div class="card" style="max-width: 90%; min-width: 25em;">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="h3">Tasks</span>
@@ -28,8 +29,11 @@ use App\Cells\ColorUtils;
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownBoards">
                             <?php foreach ($boards as $board): ?>
-                                <a class="dropdown-item" href="<?= esc($boardsURL) ?>/<?= esc($board->id) ?>"><?= esc($board->name) ?></a>
+                                <a class="dropdown-item" href="<?= esc($boardsURL) . '/' . esc($board->id) ?>"><?= esc($board->name) ?></a>
                             <?php endforeach; ?>
+                            <a class="dropdown-item link-info" href="<?= esc($boardCreateURL) ?>">
+                                <i class="fas fa-plus"></i> Neu
+                            </a>
                         </div>
                     </div>
                 </div>
