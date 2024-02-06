@@ -14,6 +14,10 @@ class Boards extends BaseController
     {
         $model = new TasksModel();
 
+        $session = session();
+        $session->set('jump_back_url', $this->thisURL);
+        $session->close();
+
         $data = [
             'boards' => $model->getAllBoards(),
             'createURL' => base_url("$this->thisURL/create"),
@@ -31,12 +35,14 @@ class Boards extends BaseController
     {
         helper('form');
 
+        $session = session();
         $dataCreate = [
             'submitURL' => base_url("$this->thisURL/docreate"),
-            'abortURL' => base_url("$this->thisURL"),
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : $this->thisURL),
             'errorMessages' => esc(validation_errors())
         ];
-        $oldInput = session('_ci_old_input');
+        $oldInput = $session->get('_ci_old_input');
+        $session->close();
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
@@ -51,13 +57,15 @@ class Boards extends BaseController
         helper('form');
 
         $model = new TasksModel();
+        $session = session();
         $dataCreate = [
             'activeBoard' => $model->getBoard($boardId),
             'submitURL' => base_url("$this->thisURL/doedit/$boardId"),
-            'abortURL' => base_url("$this->thisURL"),
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : $this->thisURL),
             'errorMessages' => esc(validation_errors())
         ];
-        $oldInput = session('_ci_old_input');
+        $oldInput = $session->get('_ci_old_input');
+        $session->close();
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
@@ -70,12 +78,14 @@ class Boards extends BaseController
     public function getDelete(int $boardId): void
     {
         $model = new TasksModel();
+        $session = session();
         $dataCreate = [
             'activeBoard' => $model->getBoard($boardId),
             'isDelete' => TRUE,
             'submitURL' => base_url("$this->thisURL/dodelete/$boardId"),
-            'abortURL' => base_url("$this->thisURL")
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : $this->thisURL)
         ];
+        $session->close();
         echo view('templates/head', ['title' => 'Board löschen']);
         echo view('templates/menu', ['activeIndex' => 2]);
         echo view('templates/board_create', $dataCreate);
@@ -95,7 +105,8 @@ class Boards extends BaseController
 
         $model = new TasksModel();
         $model->insertBoard($board);
-        return redirect()->to(base_url("$this->thisURL"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : $this->thisURL));
     }
 
     public function postDoEdit(int $boardId): RedirectResponse
@@ -112,7 +123,8 @@ class Boards extends BaseController
         $board->name = $validData['board'];
 
         $model->editBoard($board);
-        return redirect()->to(base_url("$this->thisURL"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : $this->thisURL));
     }
 
     public function postDoDelete(int $boardId): RedirectResponse
@@ -120,7 +132,8 @@ class Boards extends BaseController
         $model = new TasksModel();
 
         $model->removeBoard($boardId);
-        return redirect()->to(base_url("$this->thisURL"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : $this->thisURL));
     }
 
 }

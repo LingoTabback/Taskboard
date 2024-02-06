@@ -24,6 +24,10 @@ class Tasks extends BaseController
         $model = new TasksModel();
         $activeBoard = $model->getBoard($boardId);
 
+        $session = session();
+        $session->set('jump_back_url', "$this->thisURL/board/$boardId");
+        $session->close();
+
         $data = [
             'columns' => $model->getColsFromBoard($boardId),
             'tasks' => $model->getDisplayTasksFromBoard($boardId),
@@ -33,7 +37,8 @@ class Tasks extends BaseController
             'taskCreateURL' => base_url("$this->thisURL/create/$boardId"),
             'taskEditURL' => base_url("$this->thisURL/edit"),
             'taskDeleteURL' => base_url("$this->thisURL/delete"),
-            'columnCreateURL' => base_url("columns/create/$boardId")
+            'columnCreateURL' => base_url("columns/create/$boardId"),
+            'boardCreateURL' => base_url("boards/create")
         ];
 
         echo view('templates/head', ['title' => $activeBoard->name]);
@@ -47,15 +52,17 @@ class Tasks extends BaseController
         helper('form');
 
         $model = new TasksModel();
+        $session = session();
         $dataCreate = [
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'selectedColId' => $columnId,
             'submitURL' => base_url("$this->thisURL/docreate/$boardId"),
-            'abortURL' => base_url("$this->thisURL/board/$boardId"),
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"),
             'errorMessages' => esc(validation_errors())
         ];
-        $oldInput = session('_ci_old_input');
+        $oldInput = $session->get('_ci_old_input');
+        $session->close();
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
@@ -72,15 +79,17 @@ class Tasks extends BaseController
         $model = new TasksModel();
         $board = $model->getBoardFromTask($taskId);
         $boardId = $board->id;
+        $session = session();
         $dataCreate = [
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'activeTask' => $model->getTask($taskId),
             'submitURL' => base_url("$this->thisURL/doedit/$taskId"),
-            'abortURL' => base_url("$this->thisURL/board/$boardId"),
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"),
             'errorMessages' => esc(validation_errors())
         ];
-        $oldInput = session('_ci_old_input');
+        $oldInput = $session->get('_ci_old_input');
+        $session->close();
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
@@ -95,14 +104,16 @@ class Tasks extends BaseController
         $model = new TasksModel();
         $board = $model->getBoardFromTask($taskId);
         $boardId = $board->id;
+        $session = session();
         $dataCreate = [
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'activeTask' => $model->getTask($taskId),
             'isDelete' => TRUE,
             'submitURL' => base_url("$this->thisURL/dodelete/$taskId"),
-            'abortURL' => base_url("$this->thisURL/board/$boardId")
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId")
         ];
+        $session->close();
 
         echo view('templates/head', ['title' => 'Task löschen']);
         echo view('templates/menu', ['activeIndex' => 0]);
@@ -130,7 +141,8 @@ class Tasks extends BaseController
 
         $model = new TasksModel();
         $model->insertTask($task);
-        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
     }
 
     public function postDoEdit(int $taskId): RedirectResponse
@@ -155,7 +167,8 @@ class Tasks extends BaseController
         $task->useReminder = isset($validData['reminderuse']) && $validData['reminderuse'];
 
         $model->editTask($task);
-        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
     }
 
     public function postDoDelete(int $taskId): RedirectResponse
@@ -165,6 +178,7 @@ class Tasks extends BaseController
         $boardId = $board->id;
 
         $model->removeTask($taskId);
-        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
     }
 }

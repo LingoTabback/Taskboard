@@ -23,6 +23,10 @@ class Columns extends BaseController
         $model = new TasksModel();
         $activeBoard = $model->getBoard($boardId);
 
+        $session = session();
+        $session->set('jump_back_url', "$this->thisURL/board/$boardId");
+        $session->close();
+
         $data = [
             'columns' => $model->getDisplayColsFromBoard($boardId),
             'boards' => $model->getAllBoards(),
@@ -43,12 +47,14 @@ class Columns extends BaseController
     {
         helper('form');
 
+        $session = session();
         $dataCreate = [
             'submitURL' => base_url("$this->thisURL/docreate/$boardId"),
-            'abortURL' => base_url("$this->thisURL/board/$boardId"),
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"),
             'errorMessages' => esc(validation_errors())
         ];
-        $oldInput = session('_ci_old_input');
+        $oldInput = $session->get('_ci_old_input');
+        $session->close();
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
@@ -65,13 +71,15 @@ class Columns extends BaseController
         $model = new TasksModel();
         $board = $model->getBoardFromColumn($columnId);
         $boardId = $board->id;
+        $session = session();
         $dataCreate = [
             'activeColumn' => $model->getColumn($columnId),
             'submitURL' => base_url("$this->thisURL/doedit/$columnId"),
-            'abortURL' => base_url("$this->thisURL/board/$boardId"),
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"),
             'errorMessages' => esc(validation_errors())
         ];
-        $oldInput = session('_ci_old_input');
+        $oldInput = $session->get('_ci_old_input');
+        $session->close();
         if (isset($oldInput['post']))
             $dataCreate['oldPost'] = esc($oldInput['post']);
 
@@ -86,12 +94,14 @@ class Columns extends BaseController
         $model = new TasksModel();
         $board = $model->getBoardFromColumn($columnId);
         $boardId = $board->id;
+        $session = session();
         $dataCreate = [
             'activeColumn' => $model->getColumn($columnId),
             'isDelete' => TRUE,
             'submitURL' => base_url("$this->thisURL/dodelete/$columnId"),
-            'abortURL' => base_url("$this->thisURL/board/$boardId")
+            'abortURL' => base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId")
         ];
+        $session->close();
         echo view('templates/head', ['title' => 'Spalte löschen']);
         echo view('templates/menu', ['activeIndex' => 2]);
         echo view('templates/column_create', $dataCreate);
@@ -115,7 +125,8 @@ class Columns extends BaseController
 
         $model = new TasksModel();
         $model->insertColumn($column);
-        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
     }
 
     public function postDoEdit(int $columnId): RedirectResponse
@@ -139,7 +150,8 @@ class Columns extends BaseController
             $column->sortId = (int)$validData['sortid'];
 
         $model->editColumn($column);
-        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
     }
 
     public function postDoDelete(int $columnId): RedirectResponse
@@ -149,6 +161,7 @@ class Columns extends BaseController
         $boardId = $board->id;
 
         $model->removeColumn($columnId);
-        return redirect()->to(base_url("$this->thisURL/board/$boardId"));
+        $session = session();
+        return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
     }
 }
