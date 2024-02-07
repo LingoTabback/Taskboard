@@ -28,8 +28,8 @@ use App\DatabaseObjects\DisplayColumn;
                     <td><?= esc($board->name) ?></td>
                     <td>
                         <div class="d-flex" style="gap: 0.5em">
-                            <a href="<?= esc($editURL) ?>/<?= esc($board->id) ?>"><i class="fas fa-edit"></i></a>
-                            <a href="<?= esc($deleteURL) ?>/<?= esc($board->id) ?>"><i class="fas fa-trash"></i></a>
+                            <a href="<?= esc($editURL) ?>/<?= esc($board->id) ?>"><i class="fas fa-edit" title="Bearbeiten"></i></a>
+                            <a href="<?= esc($deleteURL) ?>/<?= esc($board->id) ?>"><i class="fas fa-trash" title="Löschen"></i></a>
                         </div>
                     </td>
                 </tr>

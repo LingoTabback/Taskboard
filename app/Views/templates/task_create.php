@@ -3,8 +3,11 @@
 use App\Cells\InvalidFeedback;
 use App\DatabaseObjects\Column;
 use App\DatabaseObjects\Task;
+use App\DatabaseObjects\TaskType;
 use App\DatabaseObjects\User;
 
+/* @var $taskTypes TaskType[] */
+/* @var $selectedTypeId int */
 /* @var $users User[] */
 /* @var $columns Column[] */
 /* @var $selectedColId int */
@@ -27,13 +30,20 @@ if (isset($oldPost['columnid']))
 if (!$showCreate)
     $selectedColId = $activeTask->columnId;
 
+if (!isset($selectedTypeId) || $selectedTypeId <= 0)
+    $selectedTypeId = $taskTypes[0]->id;
+if (isset($oldPost['typeid']))
+    $selectedTypeId = (int)$oldPost['typeid'];
+if (!$showCreate)
+    $selectedTypeId = $activeTask->typeId;
+
 if (!isset($errorMessages))
     $errorMessages = [];
 $hasErrors = !empty($errorMessages);
 ?>
 
 <div class="container pb-4">
-    <div class="card mt-4">
+    <div class="card mt-5 no-border shadow-box">
         <div class="card-header">
             <div class="d-flex justify-content-between">
                 <?php if ($showDelete): ?>
@@ -53,15 +63,29 @@ $hasErrors = !empty($errorMessages);
                             <form id="form" action="<?= esc($submitURL) ?>" method="post">
                                 <fieldset <?php if ($showDelete) echo 'disabled'; ?>>
                                     <!-- Task -->
-                                    <div class="form-group has-validation mb-4 mt-0">
+                                    <div class="has-validation">
                                         <label for="task" class="form-label mb-0">Task:</label>
-                                        <input type="text" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['task'])) echo 'is-invalid'; ?>"
-                                               id="task" name="task" placeholder="Task eingeben..."
-                                               value="<?php if (isset($oldPost['task'])) echo $oldPost['task']; elseif (!$showCreate) echo esc($activeTask->task); ?>"/>
-                                        <?= InvalidFeedback::render($errorMessages, 'task') ?>
+                                        <div class="row">
+                                            <div class="mb-4 mt-0 col-sm-8">
+                                                <input type="text" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['task'])) echo 'is-invalid'; ?>"
+                                                       id="task" name="task" placeholder="Task eingeben..."
+                                                       value="<?php if (isset($oldPost['task'])) echo $oldPost['task']; elseif (!$showCreate) echo esc($activeTask->task); ?>"/>
+                                                <?= InvalidFeedback::render($errorMessages, 'task') ?>
+                                            </div>
+                                            <div class="mb-4 mt-0 col-sm-4">
+                                                <select name="typeid" id="typeid" class="form-select <?php if ($hasErrors && isset($errorMessages['typeid'])) echo 'is-invalid'; ?>">
+                                                    <?php foreach ($taskTypes as $type): ?>
+                                                        <option value="<?= esc($type->id) ?>" <?php if ($selectedTypeId === $type->id) echo 'selected'; ?>>
+                                                            &#x<?= esc($type->iconUnicode) ?>; <?= esc($type->name) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <?= InvalidFeedback::render($errorMessages, 'typeid') ?>
+                                            </div>
+                                        </div>
                                     </div>
                                     <!-- Spalte -->
-                                    <div class="form-group has-validation mb-4">
+                                    <div class="has-validation mb-4">
                                         <label for="columnid" class="form-label mb-0">Spalte:</label>
                                         <select name="columnid" id="columnid" class="form-select <?php if ($hasErrors && isset($errorMessages['columnid'])) echo 'is-invalid'; ?>">
                                             <?php foreach ($columns as $c): ?>
@@ -71,7 +95,7 @@ $hasErrors = !empty($errorMessages);
                                         <?= InvalidFeedback::render($errorMessages, 'columnid') ?>
                                     </div>
                                     <!-- Kontakt -->
-                                    <div class="form-group has-validation mb-4">
+                                    <div class="has-validation mb-4">
                                         <label for="personid" class="form-label mb-0">Kontakt:</label>
                                         <select name="personid" id="personid" class="form-select <?php if ($hasErrors && isset($errorMessages['personid'])) echo 'is-invalid'; ?>">
                                             <?php foreach ($users as $p): ?>
@@ -81,7 +105,7 @@ $hasErrors = !empty($errorMessages);
                                         <?= InvalidFeedback::render($errorMessages, 'personid') ?>
                                     </div>
                                     <!-- Erinnerung -->
-                                    <div class="form-group has-validation">
+                                    <div class="has-validation">
                                         <label for="reminderdate" class="form-label mb-0">Erinnerung:</label>
                                         <div class="row">
                                             <div class="col-sm-6 mb-2">

@@ -1,5 +1,5 @@
 .navbar {
-    box-shadow: 0 5px 6px rgba(55,94,148, 0.3);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
 }
 
 body {
@@ -10,7 +10,7 @@ body {
 footer {
     bottom: 0;
     width: 100%;
-    box-shadow: 0 -5px 6px rgba(55,94,148, 0.3);
+    box-shadow: 0 -5px 12px rgba(0, 0, 0, 0.3);
 }
 
 .personlogo {
@@ -18,6 +18,10 @@ footer {
     padding-top: 0.4em;
     height: 2.5em;
     width: 2.5em;
+}
+
+select {
+    font-family: var(--bs-font-sans-serif), 'FontAwesome';
 }
 
 input, textarea, select {
@@ -28,6 +32,19 @@ input, textarea, select {
 fieldset:disabled input, fieldset:disabled textarea, fieldset:disabled select {
     color: var(--bs-tertiary-color)  !important;
     background-color: var(--bs-secondary-bg) !important;
+}
+
+.shadow-box {
+    box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.shadow-svg {
+    box-shadow: none !important;
+    filter: drop-shadow(5px 5px 6px rgba(0, 0, 0, 0.3)) !important;
+}
+
+.no-border {
+    border: none !important;
 }
 
 .taskcard {

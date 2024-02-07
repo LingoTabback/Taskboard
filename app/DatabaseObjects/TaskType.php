@@ -6,6 +6,7 @@ class TaskType
     public int $id = 0;
     public string $name = '';
     public string $icon = '';
+    public string $iconUnicode = '';
 
     public function __set(string $name, mixed $value): void
     {
@@ -16,6 +17,9 @@ class TaskType
                 break;
             case 'taskartenicon':
                 $this->icon = (string)$value;
+                break;
+            case 'taskarteniconunicode':
+                $this->iconUnicode = (string)$value;
                 break;
         }
     }

@@ -44,6 +44,7 @@ class Validation extends BaseConfig
 
     public array $taskCreateAndEdit = [
         'task' => 'required|max_length[255]',
+        'typeid' => 'required|is_natural_no_zero',
         'columnid' => 'required|is_natural_no_zero',
         'personid' => 'required|is_natural_no_zero',
         'reminderdate' => 'required|valid_date[Y-m-d]',
@@ -57,21 +58,25 @@ class Validation extends BaseConfig
             'required' => 'Der Task muss ausgefüllt sein.',
             'max_length[255]' => 'Der Task darf höchstens 255 Zeichen lang sein.'
         ],
+        'typeid' => [
+            'required' => 'Eine Taskart muss angegeben sein.',
+            'is_natural_no_zero' => 'Unbekannte Taskart.',
+        ],
         'columnid' => [
             'required' => 'Eine Spalte muss angegeben sein.',
-            'is_natural_no_zero' => 'Die Spalte muss auf eine existierende Spalte verweisen.',
+            'is_natural_no_zero' => 'Unbekannte Spalte.',
         ],
         'personid' => [
             'required' => 'Eine Kontakt muss angegeben sein.',
-            'is_natural_no_zero' => 'Der Kontakt muss auf eine existierende Perwson verweisen.',
+            'is_natural_no_zero' => 'Unbekannte Person.',
         ],
         'reminderdate' => [
             'required' => 'Ein Datum muss angegeben sein.',
-            'valid_date' => 'Das Datum muss gültig sein und die Form DD.MM.YYYY haben.',
+            'valid_date' => 'Das Datum is ungültig.',
         ],
         'remindertime' => [
             'required' => 'Eine Uhrzeit muss angegeben sein.',
-            'valid_date' => 'Die uhrzeit muss gültig sein und die Form HH:MM haben.',
+            'valid_date' => 'Die Uhrzeit is ungültig.',
         ],
         'reminderuse' => [
             'in_list' => 'Es ist doch nur ein Schalter, wie kann das denn schiefgehen?',

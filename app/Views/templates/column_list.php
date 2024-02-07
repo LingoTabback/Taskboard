@@ -47,8 +47,8 @@ use App\DatabaseObjects\DisplayColumn;
                     <td><?= esc($col->sortId) ?></td>
                     <td>
                         <div class="d-flex" style="gap: 0.5em">
-                            <a href="<?= esc($columnEditURL) ?>/<?= esc($col->id) ?>"><i class="fas fa-edit"></i></a>
-                            <a href="<?= esc($columnDeleteURL) ?>/<?= esc($col->id) ?>"><i class="fas fa-trash"></i></a>
+                            <a href="<?= esc($columnEditURL) ?>/<?= esc($col->id) ?>"><i class="fas fa-edit" title="Bearbeiten"></i></a>
+                            <a href="<?= esc($columnDeleteURL) ?>/<?= esc($col->id) ?>"><i class="fas fa-trash" title="Löschen"></i></a>
                         </div>
                     </td>
                 </tr>

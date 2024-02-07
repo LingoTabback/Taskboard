@@ -40,6 +40,14 @@ class TasksModel extends Model
     }
 
     /**
+     * @return TaskType[]
+     */
+    public function getAllTaskTypes(): array
+    {
+        return $this->db->query('SELECT * FROM taskarten')->getCustomResultObject(TaskType::class);
+    }
+
+    /**
      * @return Board[]
      */
     public function getAllBoards(): array

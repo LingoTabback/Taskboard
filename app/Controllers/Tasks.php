@@ -54,6 +54,7 @@ class Tasks extends BaseController
         $model = new TasksModel();
         $session = session();
         $dataCreate = [
+            'taskTypes' => $model->getAllTaskTypes(),
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'selectedColId' => $columnId,
@@ -81,6 +82,7 @@ class Tasks extends BaseController
         $boardId = $board->id;
         $session = session();
         $dataCreate = [
+            'taskTypes' => $model->getAllTaskTypes(),
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'activeTask' => $model->getTask($taskId),
@@ -106,6 +108,7 @@ class Tasks extends BaseController
         $boardId = $board->id;
         $session = session();
         $dataCreate = [
+            'taskTypes' => $model->getAllTaskTypes(),
             'users' => $model->getAllUsers(),
             'columns' => $model->getColsFromBoard($boardId),
             'activeTask' => $model->getTask($taskId),
@@ -131,7 +134,7 @@ class Tasks extends BaseController
         $validData = $validation->getValidated();
         $task = new Task();
         $task->userId = (int)$validData['personid'];
-        $task->typeId = 1;
+        $task->typeId = (int)$validData['typeid'];
         $task->columnId = (int)$validData['columnid'];
         $task->task = $validData['task'];
         $task->notes = $validData['notes'] ?? '';
@@ -160,6 +163,7 @@ class Tasks extends BaseController
 
         $task = $model->getTask($taskId);
         $task->userId = $validData['personid'];
+        $task->typeId = (int)$validData['typeid'];
         $task->columnId = $validData['columnid'];
         $task->task = $validData['task'];
         $task->notes = $validData['notes'] ?? '';

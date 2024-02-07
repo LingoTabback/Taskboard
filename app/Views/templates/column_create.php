@@ -20,7 +20,7 @@ $hasErrors = !empty($errorMessages);
 ?>
 
 <div class="container pb-4">
-    <div class="card mt-4">
+    <div class="card mt-5 no-border shadow-box">
         <div class="card-header">
             <div class="d-flex justify-content-between">
                 <?php if ($showDelete): ?>
