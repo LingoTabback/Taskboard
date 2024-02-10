@@ -61,3 +61,7 @@ fieldset:disabled input, fieldset:disabled textarea, fieldset:disabled select {
     -webkit-backdrop-filter: blur(10px);
     border: none;
 }
+
+.cursor-grab {
+    cursor: grab;
+}
