@@ -29,7 +29,7 @@ use App\Cells\ColorUtils;
                         </button>
                         <div class="dropdown-menu shadow-box" aria-labelledby="dropdownBoards">
                             <?php foreach ($boards as $board): ?>
-                                <a class="dropdown-item" href="<?= esc($boardsURL) . '/' . esc($board->id) ?>"><?= esc($board->name) ?></a>
+                                <a class="dropdown-item" href="<?= esc($boardsURL).'/'.esc($board->id) ?>"><?= esc($board->name) ?></a>
                             <?php endforeach; ?>
                             <a class="dropdown-item link-info" href="<?= esc($boardCreateURL) ?>">
                                 <i class="fas fa-plus"></i> Neu
@@ -56,10 +56,10 @@ use App\Cells\ColorUtils;
                                             <i class="fas fa-caret-square-down text-info"></i>
                                         </a>
                                         <div class="dropdown-menu shadow-box">
-                                            <a class="dropdown-item text-info" href="<?=esc($taskEditURL)?>/<?=esc($task->id)?>">
+                                            <a class="dropdown-item text-info" href="<?=esc($taskEditURL).'/'.esc($task->id)?>">
                                                 <span title="Bearbeiten" class="icon-menu"><i class="fas fa-edit"></i></span> Bearbeiten
                                             </a>
-                                            <a class="dropdown-item text-info" href="<?=esc($taskDeleteURL)?>/<?=esc($task->id)?>">
+                                            <a class="dropdown-item text-info" href="<?=esc($taskDeleteURL).'/'.esc($task->id)?>">
                                                 <span title="Löschen" class="icon-menu"><i class="fas fa-trash"></i></span> Löschen
                                             </a>
                                         </div>
@@ -76,7 +76,7 @@ use App\Cells\ColorUtils;
                                 <div class="mb-1 d-flex <?php echo ($task->notes !== '' ? 'justify-content-between' : 'justify-content-end'); ?> ">
                                     <?php if ($task->notes !== ''): ?><button class="btn btn-secondary opacity-75" style="background: none" data-bs-toggle="collapse" data-bs-target="#notes<?=esc($task->id)?>"><i class="fa-regular fa-comment-dots fa-fw"></i> Notizen</button>
                                     <?php endif; ?>
-                                    <span class="rounded-circle text-xs personlogo" title="<?=esc($task->userFirstName)?> <?=esc($task->userLastName)?>" style="color: #FFFFFF; background-color: <?=ColorUtils::colorFromId($task->userId)?>;">
+                                    <span class="rounded-circle text-xs personlogo" title="<?=esc($task->userFirstName).' '.esc($task->userLastName)?>" style="color: #FFFFFF; background-color: <?=ColorUtils::colorFromId($task->userId)?>;">
                                         <?=esc(substr($task->userFirstName, 0, 1) . substr($task->userLastName, 0, 1))?>
                                     </span>
                                 </div>
@@ -90,7 +90,7 @@ use App\Cells\ColorUtils;
                             </div></div>
                         <?php endforeach; ?>
                         <div class="d-flex justify-content-center">
-                            <a href="<?=esc($taskCreateURL) . '/' . esc($col->id)?>" class="link-info" title="Neuer Task">
+                            <a href="<?=esc($taskCreateURL).'/'.esc($col->id)?>" class="link-info" title="Neuer Task">
                                 <i class="fas fa-plus-circle fa-2x"></i>
                             </a>
                         </div>
