@@ -44,7 +44,7 @@ use App\Cells\ColorUtils;
                         <h3 class="card-title h5 mb-1"><?= esc($col->name) ?></h3>
                         <small class="mb-0 text-muted"><?= esc($col->description) ?></small>
                     </div>
-                    <div class="card-body d-flex flex-column gap-2">
+                    <div class="card-body d-flex flex-column gap-2 drag-container">
                         <?php foreach ($tasks as $task): ?><?php if ($task->columnId !== $col->id) continue; ?><div class="card taskcard no-border">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-1">
@@ -105,3 +105,36 @@ use App\Cells\ColorUtils;
         </div>
     </div>
 </main>
+
+<script>
+    $(document).ready(function () {
+        let dra = dragula({
+            isContainer: function (el) {
+                return el.classList.contains('drag-container');
+            },
+            moves: function (el, source, handle, sibling) {
+              return true;
+            },
+            accepts: function (el, target, source, sibling) {
+              return true;
+            },
+            invalid: function (el, handle) {
+                return false;
+            },
+            removeOnSpill: false,
+            revertOnSpill: true,
+            copy: false,
+
+        });
+        dra.on('drag', function (el, target, source, sibling) {
+            el.style.cursor = 'grabbing';
+        });
+        dra.on('drop', function (el, target, source, sibling) {
+            el.style.cursor = 'grab';
+            //optional, wenn SpaltenId und Reihenfolge updaten will
+        });
+        dra.on('cancel', function (el, container, source) {
+            el.style.cursor = 'grab';
+        });
+    });
+</script>
