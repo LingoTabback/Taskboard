@@ -110,6 +110,7 @@ use App\Cells\ColorUtils;
     </div>
 </main>
 
+
 <script>
     $(document).ready(function () {
         let dra = dragula({
