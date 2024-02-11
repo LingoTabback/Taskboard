@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 07. Feb 2024 um 18:18
+-- Erstellungszeit: 11. Feb 2024 um 19:08
 -- Server-Version: 10.4.28-MariaDB
 -- PHP-Version: 8.2.4
 
@@ -20,6 +20,47 @@ SET time_zone = "+00:00";
 --
 -- Datenbank: `taskboards`
 --
+
+DELIMITER $$
+--
+-- Prozeduren
+--
+CREATE PROCEDURE `create_task` (IN `userid` INT, IN `typeid` INT, IN `columnid` INT, IN `name` VARCHAR(512) CHARSET utf8, IN `createdate` DATE, IN `reminddate` DATETIME, IN `usereminder` BOOLEAN, IN `notes` TEXT CHARSET utf8)  SQL SECURITY INVOKER BEGIN
+
+DECLARE maxsortid INT;
+
+SELECT MAX(t.sortid) INTO maxsortid FROM tasks t WHERE t.spaltenid = columnid;
+
+INSERT INTO tasks (personenid, taskartenid, spaltenid, sortid, tasks, erstelldatum, erinnerungsdatum, erinnerung, notizen, erledigt, geloescht)
+VALUES (userid, typeid, columnid, maxsortid + 1, name, createdate, reminddate, usereminder, notes, 0, 0);
+
+END$$
+
+CREATE PROCEDURE `move_task` (IN `taskid` INT, IN `siblingid` INT, IN `targetcol` INT)  SQL SECURITY INVOKER BEGIN
+
+DECLARE newsort INT;
+DECLARE newcol INT;
+
+IF siblingid < 0
+THEN
+    SELECT MAX(t.sortid) + 1 INTO newsort FROM tasks t WHERE t.spaltenid = targetcol;
+    SET newcol = targetcol;
+ELSE
+    SELECT t.spaltenid, t.sortid - 1 INTO newcol, newsort FROM tasks t WHERE t.id = siblingid;
+END IF;
+
+IF EXISTS(SELECT 1 FROM tasks t WHERE t.sortid = newsort AND t.spaltenid = newcol AND t.id != taskid)
+THEN
+    UPDATE tasks t2
+    SET t2.sortid = t2.sortid + 1
+    WHERE t2.spaltenid = newcol AND t2.sortid > newsort;
+    SET newsort = newsort + 1;
+END IF;
+UPDATE tasks t3 SET t3.sortid = newsort, t3.spaltenid = newcol WHERE t3.id = taskid;
+
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -38,7 +79,13 @@ CREATE TABLE `boards` (
 
 INSERT INTO `boards` (`id`, `board`) VALUES
 (1, 'Mainboard'),
-(2, 'Snowboard');
+(2, 'Snowboard'),
+(5, 'Test1'),
+(6, 'Test2'),
+(7, 'Test3'),
+(8, 'Test4'),
+(9, 'Test5'),
+(10, 'Test6');
 
 -- --------------------------------------------------------
 
@@ -90,7 +137,9 @@ INSERT INTO `spalten` (`id`, `boardsid`, `sortid`, `spalte`, `spaltenbeschreibun
 (3, 1, 3, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen'),
 (4, 2, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen'),
 (5, 2, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin'),
-(6, 2, 3, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen');
+(6, 2, 3, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen'),
+(11, 5, 0, '1', '123'),
+(12, 5, 0, '2', '1234');
 
 -- --------------------------------------------------------
 
@@ -144,14 +193,15 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `personenid`, `taskartenid`, `spaltenid`, `sortid`, `tasks`, `erstelldatum`, `erinnerungsdatum`, `erinnerung`, `notizen`, `erledigt`, `geloescht`) VALUES
-(1, 4, 1, 2, 0, 'Internet Deinstallieren', '2024-01-08', '2024-01-10 12:00:00', 0, 'Genug ist genug.', 0, 0),
-(2, 1, 1, 1, 1, 'Faulenzen', '2024-01-08', '2024-02-15 03:00:00', 1, 'Essenziell!', 0, 0),
+(1, 4, 1, 2, 1, 'Internet Deinstallieren', '2024-01-08', '2024-01-10 12:00:00', 0, 'Genug ist genug.', 0, 0),
+(2, 1, 1, 1, 4, 'Faulenzen', '2024-01-08', '2024-02-15 03:00:00', 1, 'Essenziell!', 0, 0),
 (3, 5, 1, 3, 0, 'Chillen', '2023-12-01', '2024-01-01 00:00:00', 0, 'Wichtig!', 1, 0),
-(4, 2, 7, 1, 0, 'Relaxen', '2024-01-10', '2024-01-10 18:59:00', 1, 'Einfach mal die Füßchen hochlegen.', 0, 0),
+(4, 2, 7, 1, 3, 'Relaxen', '2024-01-10', '2024-01-10 18:59:00', 1, 'Einfach mal die Füßchen hochlegen.', 0, 0),
 (6, 6, 1, 5, 0, 'Schnee von gestern loswerden', '2024-01-10', '2024-01-10 19:00:00', 1, 'Art von Schnee: unspezifiziert.\r\nadawdawd\r\nawdqwadfawfawfaw\r\nawfaw\r\nfaw\r\nfawf\r\nawf\r\n\r\nawffwawf\r\nawf\r\naw\r\nfaw\r\nfawfawf\r\nawf\r\nawf', 0, 0),
 (7, 3, 1, 6, 0, 'Einen Task erledigen', '2024-01-10', '2024-01-10 19:00:00', 1, 'Ist erledigt!', 0, 0),
 (8, 4, 1, 4, 0, 'Einkaufliste', '2024-01-10', '2024-01-10 19:00:00', 1, 'Einkaufliste für letzte Woche schreiben.', 0, 0),
-(13, 6, 4, 3, 0, 'jep', '2024-02-03', '2024-02-03 17:29:00', 0, 'this is fine', 0, 0);
+(13, 6, 4, 3, 1, 'jep', '2024-02-03', '2024-02-03 17:29:00', 0, 'this is fine', 0, 0),
+(15, 1, 1, 11, 0, 'test', '2024-02-11', '2024-02-11 11:05:00', 0, '', 0, 0);
 
 --
 -- Indizes der exportierten Tabellen
@@ -199,7 +249,7 @@ ALTER TABLE `tasks`
 -- AUTO_INCREMENT für Tabelle `boards`
 --
 ALTER TABLE `boards`
-  MODIFY `id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT für Tabelle `personen`
@@ -211,7 +261,7 @@ ALTER TABLE `personen`
 -- AUTO_INCREMENT für Tabelle `spalten`
 --
 ALTER TABLE `spalten`
-  MODIFY `id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT für Tabelle `taskarten`
@@ -223,7 +273,7 @@ ALTER TABLE `taskarten`
 -- AUTO_INCREMENT für Tabelle `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- Constraints der exportierten Tabellen

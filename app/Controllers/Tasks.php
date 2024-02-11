@@ -38,7 +38,8 @@ class Tasks extends BaseController
             'taskEditURL' => base_url("$this->thisURL/edit"),
             'taskDeleteURL' => base_url("$this->thisURL/delete"),
             'columnCreateURL' => base_url("columns/create/$boardId"),
-            'boardCreateURL' => base_url("boards/create")
+            'boardCreateURL' => base_url("boards/create"),
+            'taskMoveURL' => base_url("$this->thisURL/domove"),
         ];
 
         echo view('templates/head', ['title' => $activeBoard->name]);
@@ -184,5 +185,21 @@ class Tasks extends BaseController
         $model->removeTask($taskId);
         $session = session();
         return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
+    }
+
+    public function postDoMove(): void
+    {
+        $validation = Services::validation();
+        $validation->setRuleGroup('taskMove');
+        if (!$validation->withRequest($this->request)->run())
+        {
+            echo 'failure';
+            return;
+        }
+
+        $validData = $validation->getValidated();
+        $model = new TasksModel();
+        $model->moveTask((int)$validData['taskid'], (int)$validData['siblingid'], (int)$validData['targetcol']);
+        echo 'success';
     }
 }

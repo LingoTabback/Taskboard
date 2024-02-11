@@ -18,10 +18,10 @@ class TasksModel extends Model
      */
     public function getTasksFromBoard(int $boardId): array
     {
-        return $this->db->query("
+        return $this->db->query('
                 SELECT t.*
                 FROM tasks t JOIN spalten s ON t.spaltenid = s.id
-                WHERE s.boardsid = {$this->db->escape($boardId)}")
+                WHERE s.boardsid = ?', [$boardId])
             ->getCustomResultObject(Task::class);
     }
 
@@ -30,13 +30,13 @@ class TasksModel extends Model
      */
     public function getDisplayTasksFromBoard(int $boardId): array
     {
-        return $this->db->query("
+        return $this->db->query('
                 SELECT t.*, s.spalte, p.name, p.vorname, ta.taskart, ta.taskartenicon
                 FROM tasks t JOIN spalten s ON t.spaltenid = s.id
                 JOIN personen p ON t.personenid = p.id
                 JOIN taskarten ta ON t.taskartenid = ta.id
-                WHERE s.boardsid = {$this->db->escape($boardId)}
-                ORDER BY t.tasks")
+                WHERE s.boardsid = ?
+                ORDER BY t.sortid', [$boardId])
             ->getCustomResultObject(DisplayTask::class);
     }
 
@@ -58,24 +58,24 @@ class TasksModel extends Model
 
     public function getBoard(int $boardId): Board | null
     {
-        $result = $this->db->query("SELECT * FROM boards WHERE id = {$this->db->escape($boardId)}")->getRowArray(0);
+        $result = $this->db->query('SELECT * FROM boards WHERE id = ?', [$boardId])->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
     }
 
     public function getBoardFromTask(int $taskId): Board | null
     {
-        $result = $this->db->query("
+        $result = $this->db->query('
                 SELECT b.*
-                FROM (SELECT spaltenid FROM tasks WHERE id = {$this->db->escape($taskId)}) AS t
+                FROM (SELECT spaltenid FROM tasks WHERE id = ?) AS t
                 JOIN spalten s ON s.id = t.spaltenid
-                JOIN boards b ON b.id = s.boardsid")->getRowArray(0);
+                JOIN boards b ON b.id = s.boardsid', [$taskId])->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
     }
 
     public function getBoardFromColumn(int $columnId): Board | null
     {
-        $result = $this->db->query("
-                SELECT b.* FROM spalten s JOIN boards b on b.id = s.boardsid WHERE s.id = {$this->db->escape($columnId)}")->getRowArray(0);
+        $result = $this->db->query('
+                SELECT b.* FROM spalten s JOIN boards b on b.id = s.boardsid WHERE s.id = ?', [$columnId])->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
     }
 
@@ -97,7 +97,7 @@ class TasksModel extends Model
 
     public function getColumn(int $columnId): Column | null
     {
-        $result = $this->db->query("SELECT * FROM spalten WHERE id = {$this->db->escape($columnId)}")->getRowArray(0);
+        $result = $this->db->query('SELECT * FROM spalten WHERE id = ?', [$columnId])->getRowArray(0);
         return $result ? Column::fromArray($result) : null;
     }
 
@@ -106,7 +106,8 @@ class TasksModel extends Model
      */
     public function getColsFromBoard(int $boardId): array
     {
-        return $this->db->query("SELECT * FROM spalten WHERE boardsid = {$this->db->escape($boardId)}")->getCustomResultObject(Column::class);
+        return $this->db->query('SELECT * FROM spalten WHERE boardsid = ?', [$boardId])
+            ->getCustomResultObject(Column::class);
     }
 
     /**
@@ -114,7 +115,8 @@ class TasksModel extends Model
      */
     public function getDisplayColsFromBoard(int $boardId): array
     {
-        return $this->db->query("SELECT c.*, b.board FROM spalten c JOIN boards b on b.id = c.boardsid WHERE boardsid = {$this->db->escape($boardId)}")->getCustomResultObject(DisplayColumn::class);
+        return $this->db->query('SELECT c.*, b.board FROM spalten c JOIN boards b on b.id = c.boardsid WHERE boardsid = ?', [$boardId])
+            ->getCustomResultObject(DisplayColumn::class);
     }
 
     /**
@@ -122,12 +124,12 @@ class TasksModel extends Model
      */
     public function getAllUsers(): array
     {
-        return $this->db->query("SELECT * FROM personen")->getCustomResultObject(User::class);
+        return $this->db->query('SELECT * FROM personen')->getCustomResultObject(User::class);
     }
 
     public function getTask(int $taskId): Task | null
     {
-        $result = $this->db->query("SELECT * FROM tasks WHERE id = {$this->db->escape($taskId)}")->getRowArray(0);
+        $result = $this->db->query('SELECT * FROM tasks WHERE id = ?', [$taskId])->getRowArray(0);
         return $result ? Task::fromArray($result) : null;
     }
 
@@ -136,22 +138,28 @@ class TasksModel extends Model
         $creationDateString = $task->createDate->format('Y-m-d');
         $reminderDateString = $task->remindDate->format('Y-m-d H:i:s');
         $useReminder = (int)$task->useReminder;
-        $isDone = (int)$task->isDone;
-        $isDeleted = (int)$task->isDeleted;
-        return $this->db->query("
-                INSERT INTO tasks (id, personenid, taskartenid, spaltenid, sortid, tasks, erstelldatum, erinnerungsdatum, erinnerung, notizen, erledigt, geloescht)
-                VALUES (NULL,
-                        {$this->db->escape($task->userId)},
-                        {$this->db->escape($task->typeId)},
-                        {$this->db->escape($task->columnId)},
-                        {$this->db->escape($task->sortId)},
-                        {$this->db->escape($task->task)},
-                        {$this->db->escape($creationDateString)},
-                        {$this->db->escape($reminderDateString)},
-                        {$this->db->escape($useReminder)},
-                        {$this->db->escape($task->notes)},
-                        {$this->db->escape($isDone)},
-                        {$this->db->escape($isDeleted)})");
+
+        try
+        {
+            $this->db->query('CALL create_task(?, ?, ?, ?, ?, ?, ?, ?)',
+                [$task->userId, $task->typeId, $task->columnId, $task->task, $creationDateString, $reminderDateString, $useReminder, $task->notes]);
+            return TRUE;
+        } catch (DatabaseException $e)
+        {
+            return FALSE;
+        }
+    }
+
+    public function moveTask(int $taskId, int $siblingId, int $targetColId): bool
+    {
+        try
+        {
+            $this->db->query('CALL move_task(?, ?, ?)', [$taskId, $siblingId, $targetColId]);
+            return TRUE;
+        } catch (DatabaseException $e)
+        {
+            return FALSE;
+        }
     }
 
     public function editTask(Task $task): bool
@@ -161,47 +169,42 @@ class TasksModel extends Model
         $isDone = (int)$task->isDone;
         $isDeleted = (int)$task->isDeleted;
 
-        return $this->db->query("
+        return $this->db->query('
                 UPDATE tasks
-                SET personenid = {$this->db->escape($task->userId)},
-                    taskartenid = {$this->db->escape($task->typeId)},
-                    spaltenid = {$this->db->escape($task->columnId)},
-                    sortid = {$this->db->escape($task->sortId)},
-                    tasks = {$this->db->escape($task->task)},
-                    notizen = {$this->db->escape($task->notes)},
-                    erinnerungsdatum = {$this->db->escape($reminderDateString)},
-                    erinnerung = {$this->db->escape($useReminder)},
-                    erledigt = {$this->db->escape($isDone)},
-                    geloescht = {$this->db->escape($isDeleted)}
-                WHERE id = {$this->db->escape($task->id)}");
+                SET personenid = ?,
+                    taskartenid = ?,
+                    spaltenid = ?,
+                    tasks = ?,
+                    notizen = ?,
+                    erinnerungsdatum = ?,
+                    erinnerung = ?,
+                    erledigt = ?,
+                    geloescht = ?
+                WHERE id = ?',
+            [$task->userId, $task->typeId, $task->columnId, $task->task, $task->notes, $reminderDateString, $useReminder, $isDone, $isDeleted, $task->id]);
     }
 
     public function removeTask(int $taskId): bool
     {
-        return $this->db->query("DELETE FROM tasks WHERE id = {$this->db->escape($taskId)}");
+        return $this->db->query('DELETE FROM tasks WHERE id = ?', [$taskId]);
     }
 
     public function insertColumn(Column $column): bool
     {
-        return $this->db->query("
-                INSERT INTO spalten (boardsid, sortid, spalte, spaltenbeschreibung)
-                VALUES ({$this->db->escape($column->boradId)}, {$this->db->escape($column->sortId)}, {$this->db->escape($column->name)}, {$this->db->escape($column->description)})");
+        return $this->db->query('INSERT INTO spalten (boardsid, sortid, spalte, spaltenbeschreibung) VALUES (?, ?, ?, ?)',
+            [$column->boradId, $column->sortId, $column->name, $column->description]);
     }
 
     public function editColumn(Column $column): bool
     {
-        return $this->db->query("
-                UPDATE spalten
-                SET sortid = {$this->db->escape($column->sortId)},
-                    spalte = {$this->db->escape($column->name)},
-                    spaltenbeschreibung = {$this->db->escape($column->description)}
-                WHERE id = {$this->db->escape($column->id)}");
+        return $this->db->query('UPDATE spalten SET sortid = ?, spalte = ?, spaltenbeschreibung = ? WHERE id = ?',
+            [$column->sortId, $column->name, $column->description, $column->id]);
     }
 
     public function removeColumn(int $columnId): bool
     {
         try {
-            return $this->db->query("DELETE FROM spalten WHERE id = {$this->db->escape($columnId)}");
+            return $this->db->query('DELETE FROM spalten WHERE id = ?', [$columnId]);
         } catch (DatabaseException $e) {
             return FALSE;
         }
@@ -209,23 +212,18 @@ class TasksModel extends Model
 
     public function insertBoard(Board $board): bool
     {
-        return $this->db->query("
-                INSERT INTO boards (board)
-                VALUES ({$this->db->escape($board->name)})");
+        return $this->db->query('INSERT INTO boards (board) VALUES (?)', [$board->name]);
     }
 
     public function editBoard(Board $board): bool
     {
-        return $this->db->query("
-                UPDATE boards
-                SET board = {$this->db->escape($board->name)}
-                WHERE id = {$this->db->escape($board->id)}");
+        return $this->db->query('UPDATE boards SET board = ? WHERE id = ?', [$board->name, $board->id]);
     }
 
     public function removeBoard(int $boardId): bool
     {
         try {
-            return $this->db->query("DELETE FROM boards WHERE id = {$this->db->escape($boardId)}");
+            return $this->db->query('DELETE FROM boards WHERE id = ?', [$boardId]);
         } catch (DatabaseException $e) {
             return FALSE;
         }

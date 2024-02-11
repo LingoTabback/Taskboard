@@ -83,6 +83,12 @@ class Validation extends BaseConfig
         ]
     ];
 
+    public array $taskMove= [
+        'taskid' => 'required|is_natural_no_zero',
+        'siblingid' => 'required|integer',
+        'targetcol' => 'required|is_natural_no_zero'
+    ];
+
     public array $columnCreateAndEdit = [
         'column' => 'required|string|max_length[255]',
         'description' => 'required',
