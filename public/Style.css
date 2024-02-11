@@ -54,3 +54,14 @@ fieldset:disabled input, fieldset:disabled textarea, fieldset:disabled select {
 .header-column {
     background-color: rgb(38, 38, 42);
 }
+
+.dropdown-menu {
+    background-color: color-mix(in srgb, var(--bs-dropdown-bg), transparent 30%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: none;
+}
+
+.cursor-grab {
+    cursor: grab;
+}

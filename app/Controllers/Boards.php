@@ -19,10 +19,12 @@ class Boards extends BaseController
         $session->close();
 
         $data = [
-            'boards' => $model->getAllBoards(),
+            'boards' => $model->getAllDisplayBoards(),
             'createURL' => base_url("$this->thisURL/create"),
             'editURL' => base_url("$this->thisURL/edit"),
-            'deleteURL' => base_url("$this->thisURL/delete")
+            'deleteURL' => base_url("$this->thisURL/delete"),
+            'tasksURL' => base_url('tasks/board'),
+            'colsURL' => base_url('columns/board')
         ];
 
         echo view('templates/head', ['title' => 'Boards']);
