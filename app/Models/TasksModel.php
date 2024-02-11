@@ -2,6 +2,7 @@
 namespace App\Models;
 use App\DatabaseObjects\Board;
 use App\DatabaseObjects\Column;
+use App\DatabaseObjects\DisplayBoard;
 use App\DatabaseObjects\DisplayColumn;
 use App\DatabaseObjects\DisplayTask;
 use App\DatabaseObjects\Task;
@@ -76,6 +77,22 @@ class TasksModel extends Model
         $result = $this->db->query("
                 SELECT b.* FROM spalten s JOIN boards b on b.id = s.boardsid WHERE s.id = {$this->db->escape($columnId)}")->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
+    }
+
+    /**
+     * @return DisplayBoard[]
+     */
+    public function getAllDisplayBoards(): array
+    {
+        return $this->db->query('
+                SELECT b.*, COALESCE(nc.numcols, 0) AS numcols, COALESCE(nc.numtasks, 0) AS numtasks
+                FROM
+                    boards b
+                    LEFT JOIN (
+                        SELECT DISTINCT c.boardsid, COUNT(c.boardsid) OVER(PARTITION BY c.boardsid) AS numcols, SUM(c.numtasks) OVER(PARTITION BY c.boardsid) AS numtasks
+                        FROM (SELECT DISTINCT s.id, s.boardsid, COUNT(t.id) OVER(PARTITION BY s.id) AS numtasks FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid) c
+                    ) nc ON b.id = nc.boardsid')
+            ->getCustomResultObject(DisplayBoard::class);
     }
 
     public function getColumn(int $columnId): Column | null
