@@ -42,7 +42,7 @@ if (!isset($errorMessages))
 $hasErrors = !empty($errorMessages);
 ?>
 
-<div class="container pb-4">
+<div class="container pb-5">
     <div class="card mt-5 no-border shadow-box">
         <div class="card-header">
             <div class="d-flex justify-content-between">

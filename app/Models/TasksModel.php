@@ -45,7 +45,7 @@ class TasksModel extends Model
      */
     public function getAllTaskTypes(): array
     {
-        return $this->db->query('SELECT * FROM taskarten')->getCustomResultObject(TaskType::class);
+        return $this->db->query('SELECT * FROM taskarten ORDER BY taskart')->getCustomResultObject(TaskType::class);
     }
 
     /**
@@ -53,7 +53,7 @@ class TasksModel extends Model
      */
     public function getAllBoards(): array
     {
-        return $this->db->query('SELECT * FROM boards')->getCustomResultObject(Board::class);
+        return $this->db->query('SELECT * FROM boards ORDER BY board')->getCustomResultObject(Board::class);
     }
 
     public function getBoard(int $boardId): Board | null
@@ -91,7 +91,7 @@ class TasksModel extends Model
                     LEFT JOIN (
                         SELECT DISTINCT c.boardsid, COUNT(c.boardsid) OVER(PARTITION BY c.boardsid) AS numcols, SUM(c.numtasks) OVER(PARTITION BY c.boardsid) AS numtasks
                         FROM (SELECT DISTINCT s.id, s.boardsid, COUNT(t.id) OVER(PARTITION BY s.id) AS numtasks FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid) c
-                    ) nc ON b.id = nc.boardsid')
+                    ) nc ON b.id = nc.boardsid ORDER BY b.board')
             ->getCustomResultObject(DisplayBoard::class);
     }
 
@@ -106,7 +106,7 @@ class TasksModel extends Model
      */
     public function getColsFromBoard(int $boardId): array
     {
-        return $this->db->query('SELECT * FROM spalten WHERE boardsid = ?', [$boardId])
+        return $this->db->query('SELECT * FROM spalten WHERE boardsid = ? ORDER BY sortid', [$boardId])
             ->getCustomResultObject(Column::class);
     }
 
@@ -115,7 +115,9 @@ class TasksModel extends Model
      */
     public function getDisplayColsFromBoard(int $boardId): array
     {
-        return $this->db->query('SELECT c.*, b.board FROM spalten c JOIN boards b on b.id = c.boardsid WHERE boardsid = ?', [$boardId])
+        return $this->db->query('
+                SELECT DISTINCT s.*, COUNT(t.id) OVER(PARTITION BY s.id) AS numtasks
+                FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid WHERE boardsid = ? ORDER BY s.sortid', [$boardId])
             ->getCustomResultObject(DisplayColumn::class);
     }
 
@@ -124,7 +126,7 @@ class TasksModel extends Model
      */
     public function getAllUsers(): array
     {
-        return $this->db->query('SELECT * FROM personen')->getCustomResultObject(User::class);
+        return $this->db->query('SELECT * FROM personen ORDER BY name, vorname')->getCustomResultObject(User::class);
     }
 
     public function getTask(int $taskId): Task | null
@@ -144,7 +146,7 @@ class TasksModel extends Model
             $this->db->query('CALL create_task(?, ?, ?, ?, ?, ?, ?, ?)',
                 [$task->userId, $task->typeId, $task->columnId, $task->task, $creationDateString, $reminderDateString, $useReminder, $task->notes]);
             return TRUE;
-        } catch (DatabaseException $e)
+        } catch (DatabaseException)
         {
             return FALSE;
         }
@@ -156,7 +158,7 @@ class TasksModel extends Model
         {
             $this->db->query('CALL move_task(?, ?, ?)', [$taskId, $siblingId, $targetColId]);
             return TRUE;
-        } catch (DatabaseException $e)
+        } catch (DatabaseException)
         {
             return FALSE;
         }
@@ -191,8 +193,25 @@ class TasksModel extends Model
 
     public function insertColumn(Column $column): bool
     {
-        return $this->db->query('INSERT INTO spalten (boardsid, sortid, spalte, spaltenbeschreibung) VALUES (?, ?, ?, ?)',
-            [$column->boradId, $column->sortId, $column->name, $column->description]);
+        try {
+            $this->db->query('CALL create_col(?, ?, ?)', [$column->boradId, $column->name, $column->description]);
+            return TRUE;
+        } catch (DatabaseException)
+        {
+            return FALSE;
+        }
+    }
+
+    public function moveColumn(int $columnId, int $siblingId, int $targetBordId): bool
+    {
+        try
+        {
+            $this->db->query('CALL move_col(?, ?, ?)', [$columnId, $siblingId, $targetBordId]);
+            return TRUE;
+        } catch (DatabaseException)
+        {
+            return FALSE;
+        }
     }
 
     public function editColumn(Column $column): bool
@@ -205,7 +224,7 @@ class TasksModel extends Model
     {
         try {
             return $this->db->query('DELETE FROM spalten WHERE id = ?', [$columnId]);
-        } catch (DatabaseException $e) {
+        } catch (DatabaseException) {
             return FALSE;
         }
     }
@@ -224,7 +243,7 @@ class TasksModel extends Model
     {
         try {
             return $this->db->query('DELETE FROM boards WHERE id = ?', [$boardId]);
-        } catch (DatabaseException $e) {
+        } catch (DatabaseException) {
             return FALSE;
         }
     }

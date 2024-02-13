@@ -19,7 +19,7 @@ if (!isset($errorMessages))
 $hasErrors = !empty($errorMessages);
 ?>
 
-<div class="container pb-4">
+<div class="container pb-5">
     <div class="card mt-5 no-border shadow-box">
         <div class="card-header">
             <div class="d-flex justify-content-between">
@@ -53,14 +53,6 @@ $hasErrors = !empty($errorMessages);
                                             <textarea class="form-control <?php if ($hasErrors && isset($errorMessages['description'])) echo 'is-invalid'; ?>"
                                                       rows="3" id="description" name="description" placeholder="Spaltenbeschreibung..."><?php if (isset($oldPost['description'])) echo $oldPost['description']; elseif (!$showCreate) echo esc($activeColumn->description); ?></textarea>
                                         <?= InvalidFeedback::render($errorMessages, 'description') ?>
-                                    </div>
-                                    <!-- Sortid -->
-                                    <div class="form-group has-validation mb-4 mt-0">
-                                        <label for="sortid" class="form-label mb-0">Sort ID:</label>
-                                        <input type="number" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['sortid'])) echo 'is-invalid'; ?>"
-                                               id="sortid" name="sortid" placeholder="Sort ID..."
-                                               value="<?php if (isset($oldPost['sortid'])) echo $oldPost['sortid']; elseif (!$showCreate) echo esc($activeColumn->sortId); ?>"/>
-                                        <?= InvalidFeedback::render($errorMessages, 'sortid') ?>
                                     </div>
                                 </fieldset>
                                 <div class="row">

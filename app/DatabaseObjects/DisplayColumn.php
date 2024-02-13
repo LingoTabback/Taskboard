@@ -5,14 +5,14 @@ use DateTime;
 
 class DisplayColumn extends Column
 {
-    public string $boardName = '';
+    public int $numTasks = 0;
 
     public function __set(string $name, mixed $value): void
     {
         switch ($name)
         {
-            case 'board':
-                $this->boardName = (string)$value;
+            case 'numtasks':
+                $this->numTasks = (int)$value;
                 break;
             default:
                 parent::__set($name, $value);

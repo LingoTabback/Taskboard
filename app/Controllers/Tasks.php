@@ -38,7 +38,7 @@ class Tasks extends BaseController
             'taskEditURL' => base_url("$this->thisURL/edit"),
             'taskDeleteURL' => base_url("$this->thisURL/delete"),
             'columnCreateURL' => base_url("columns/create/$boardId"),
-            'boardCreateURL' => base_url("boards/create"),
+            'boardCreateURL' => base_url('boards/create'),
             'taskMoveURL' => base_url("$this->thisURL/domove"),
         ];
 
@@ -199,7 +199,9 @@ class Tasks extends BaseController
 
         $validData = $validation->getValidated();
         $model = new TasksModel();
-        $model->moveTask((int)$validData['taskid'], (int)$validData['siblingid'], (int)$validData['targetcol']);
-        echo 'success';
+        if ($model->moveTask((int)$validData['taskid'], (int)$validData['siblingid'], (int)$validData['targetcol']))
+            echo 'success';
+        else
+            echo 'failure';
     }
 }

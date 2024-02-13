@@ -62,6 +62,17 @@ fieldset:disabled input, fieldset:disabled textarea, fieldset:disabled select {
     border: none;
 }
 
-.cursor-grab {
-    cursor: grab;
+.drag-handle {
+    cursor: grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.dragging {
+    border: solid rgb(70, 70, 70) !important;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(22em, auto));
+    grid-auto-rows: 1fr;
 }

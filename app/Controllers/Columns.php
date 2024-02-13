@@ -31,10 +31,14 @@ class Columns extends BaseController
             'columns' => $model->getDisplayColsFromBoard($boardId),
             'boards' => $model->getAllBoards(),
             'activeBoard' => $activeBoard,
+            'boardsURL' => base_url("$this->thisURL/board"),
+            'tasksURL' => base_url('tasks/board'),
             'columnsURL' => base_url("$this->thisURL/board"),
             'columnCreateURL' => base_url("$this->thisURL/create/$boardId"),
             'columnEditURL' => base_url("$this->thisURL/edit"),
             'columnDeleteURL' => base_url("$this->thisURL/delete"),
+            'boardCreateURL' => base_url('boards/create'),
+            'columnMoveURL' => base_url("$this->thisURL/domove")
         ];
 
         echo view('templates/head', ['title' => $activeBoard->name]);
@@ -120,8 +124,6 @@ class Columns extends BaseController
         $column->boradId = $boardId;
         $column->name = $validData['column'];
         $column->description = $validData['description'] ?? '';
-        if (isset($validData['sortid']))
-            $column->sortId = (int)$validData['sortid'];
 
         $model = new TasksModel();
         $model->insertColumn($column);
@@ -146,8 +148,6 @@ class Columns extends BaseController
         $column->boradId = $boardId;
         $column->name = $validData['column'];
         $column->description = $validData['description'] ?? '';
-        if (isset($validData['sortid']))
-            $column->sortId = (int)$validData['sortid'];
 
         $model->editColumn($column);
         $session = session();
@@ -163,5 +163,23 @@ class Columns extends BaseController
         $model->removeColumn($columnId);
         $session = session();
         return redirect()->to(base_url($session->has('jump_back_url') ? $session->get('jump_back_url') : "$this->thisURL/board/$boardId"));
+    }
+
+    public function postDoMove(): void
+    {
+        $validation = Services::validation();
+        $validation->setRuleGroup('columnMove');
+        if (!$validation->withRequest($this->request)->run())
+        {
+            echo 'failure';
+            return;
+        }
+
+        $validData = $validation->getValidated();
+        $model = new TasksModel();
+        if ($model->moveColumn((int)$validData['colid'], (int)$validData['siblingid'], (int)$validData['targetbrd']))
+            echo 'success';
+        else
+            echo 'failure';
     }
 }

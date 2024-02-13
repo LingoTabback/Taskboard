@@ -19,7 +19,7 @@ use App\Cells\ColorUtils;
 ?>
 
 <main role="main">
-    <div class="d-flex flex-row justify-content-center pt-5">
+    <div class="d-flex flex-row justify-content-center pt-5 pb-5">
         <div class="card no-border shadow-box" style="max-width: 90%; min-width: 25em;">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
@@ -46,27 +46,19 @@ use App\Cells\ColorUtils;
                             <h3 class="card-title h5 mb-1"><?= esc($col->name) ?></h3>
                             <small class="mb-0 text-muted"><?= esc($col->description) ?></small>
                         </div>
-                        <div class="card-body d-flex flex-column gap-2 drag-container" columnid="<?=esc($col->id)?>">
+                        <div class="card-body d-flex flex-column gap-2">
+                            <div class="d-flex flex-column gap-2 drag-container" columnid="<?=esc($col->id)?>">
                             <?php foreach ($tasks as $task): ?>
                                 <?php if ($task->columnId !== $col->id) continue; ?>
-                                <div class="card taskcard no-border cursor-grab" taskid="<?=esc($task->id)?>">
+                                <div class="card taskcard no-border draggable" taskid="<?=esc($task->id)?>">
                                     <div class="card-body">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <a href="<?=esc($taskEditURL)?>/<?=esc($task->id)?>" class="link-info link-underline-opacity-0">
+                                        <div class="d-flex justify-content-between gap-1 mb-1">
+                                            <span class="link-info link-underline-opacity-0 flex-grow-1 drag-handle">
                                                 <i class="<?=esc($task->taskTypeIcon)?> fa-fw" title="<?=esc($task->taskTypeName)?>"></i> <?=esc($task->task)?>
-                                            </a>
-                                            <div class="dropdown position-static">
-                                                <a class="btn btn-link ps-0 pt-0 pb-0 pe-2" role="button" data-bs-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" >
-                                                    <i class="fas fa-caret-square-down text-info"></i>
-                                                </a>
-                                                <div class="dropdown-menu shadow-box">
-                                                    <a class="dropdown-item text-info" href="<?=esc($taskEditURL).'/'.esc($task->id)?>">
-                                                        <span title="Bearbeiten" class="icon-menu"><i class="fas fa-edit"></i></span> Bearbeiten
-                                                    </a>
-                                                    <a class="dropdown-item text-info" href="<?=esc($taskDeleteURL).'/'.esc($task->id)?>">
-                                                        <span title="Löschen" class="icon-menu"><i class="fas fa-trash"></i></span> Löschen
-                                                    </a>
-                                                </div>
+                                            </span>
+                                            <div class="d-flex" style="gap: 0.5em">
+                                                <a href="<?=esc($taskEditURL).'/'.esc($task->id)?>"><i class="fas fa-edit link-info" title="Bearbeiten"></i></a>
+                                                <a href="<?=esc($taskDeleteURL).'/'.esc($task->id)?>"><i class="fas fa-trash link-info" title="Löschen"></i></a>
                                             </div>
                                         </div>
                                         <div class="mb-1 d-flex justify-content-between">
@@ -91,8 +83,8 @@ use App\Cells\ColorUtils;
                                         </div>
                                         <?php if ($task->notes !== ''): ?>
                                             <div class="collapse mt-2" id="notes<?=esc($task->id)?>">
-                                                <div class="card p-0" style="background-color: #202020">
-                                                    <div class="card-body p-2 overflow-y-scroll" style="max-height: 10em">
+                                                <div class="card p-0 no-border" style="background-color: rgb(20, 20, 20)">
+                                                    <div class="card-body p-2 overflow-y-auto" style="max-height: 10em">
                                                         <?=nl2br(esc($task->notes))?>
                                                     </div>
                                                 </div>
@@ -101,7 +93,8 @@ use App\Cells\ColorUtils;
                                     </div>
                                 </div>
                             <?php endforeach; ?>
-                            <div class="d-flex justify-content-center non-draggable">
+                            </div>
+                            <div class="d-flex justify-content-center">
                                 <a href="<?=esc($taskCreateURL).'/'.esc($col->id)?>" class="link-info" title="Neuer Task">
                                     <i class="fas fa-plus-circle fa-2x"></i>
                                 </a>
@@ -121,47 +114,33 @@ use App\Cells\ColorUtils;
 
 <script>
     $(document).ready(function () {
-        let dra = dragula({
-            isContainer: function (el) {
-                return el.classList.contains('drag-container');
-            },
-            moves: function (el, source, handle, sibling) {
-                return !el.classList.contains('non-draggable');
-            },
-            accepts: function (el, target, source, sibling) {
-                return sibling !== null;
-            },
-            invalid: function (el, handle) {
-                return false;
-            },
-            direction: 'vertical',
-            copy: false,
-            copySortSource: false,
-            removeOnSpill: false,
-            revertOnSpill: true,
-            mirrorContainer: document.body,
-            ignoreInputTextSelection: true,
-            slideFactorX: 10,
-            slideFactorY: 10
-        });
-        dra.on('drag', function (el, target, source, sibling) {
-            el.style.cursor = 'grabbing';
-        });
-        dra.on('drop', function (el, target, source, sibling) {
-            el.style.cursor = 'grab';
-            $.ajax({
-                url: "<?=esc($taskMoveURL)?>",
-                method: 'post',
-                data: {
-                    taskid: el.getAttribute('taskid'),
-                    siblingid: sibling !== null && sibling.hasAttribute('taskid') ? sibling.getAttribute('taskid') : -1,
-                    targetcol: target.getAttribute('columnid')
-                },
-                dataType: 'json'
+        $('.drag-container').each(function (i, el) {
+            new Sortable(el, {
+                group: 'tasks',
+                draggable: '.draggable',
+                handle: '.drag-handle',
+                chosenClass: 'dragging',
+                animation: 150,
+                revertOnSpill: true,
+                scroll: true,
+                delay: 250,
+                delayOnTouchOnly: true,
+                onEnd: moveTask
             });
         });
-        dra.on('cancel', function (el, container, source) {
-            el.style.cursor = 'grab';
-        });
     });
+
+    function moveTask(evt) {
+        let sibling = $(evt.to).children().get(evt.newIndex + 1);
+        $.ajax({
+            url: "<?=esc($taskMoveURL)?>",
+            method: 'post',
+            data: {
+                taskid: evt.item.getAttribute('taskid'),
+                siblingid: sibling !== undefined && sibling.hasAttribute('taskid') ? sibling.getAttribute('taskid') : -1,
+                targetcol: evt.to.getAttribute('columnid')
+            },
+            dataType: 'json'
+        });
+    }
 </script>

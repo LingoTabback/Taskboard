@@ -86,13 +86,12 @@ class Validation extends BaseConfig
     public array $taskMove= [
         'taskid' => 'required|is_natural_no_zero',
         'siblingid' => 'required|integer',
-        'targetcol' => 'required|is_natural_no_zero'
+        'targetcol' => 'required|integer'
     ];
 
     public array $columnCreateAndEdit = [
         'column' => 'required|string|max_length[255]',
-        'description' => 'required',
-        'sortid' => 'permit_empty|integer'
+        'description' => 'required'
     ];
 
     public array $columnCreateAndEdit_errors = [
@@ -102,10 +101,13 @@ class Validation extends BaseConfig
         ],
         'description' => [
             'required' => 'Die Beschreibung muss ausgefüllt sein.',
-        ],
-        'sortid' => [
-            'integer' => 'Sort ID muss eine ganze Zahl sein.',
-        ],
+        ]
+    ];
+
+    public array $columnMove= [
+        'colid' => 'required|is_natural_no_zero',
+        'siblingid' => 'required|integer',
+        'targetbrd' => 'required|integer'
     ];
 
     public array $boardCreateAndEdit = [
