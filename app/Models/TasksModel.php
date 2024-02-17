@@ -20,8 +20,7 @@ class TasksModel extends Model
     {
         return $this->db->query('
                 SELECT t.*
-                FROM tasks t JOIN spalten s ON t.spaltenid = s.id
-                WHERE s.boardsid = ?', [$boardId])
+                FROM tasks t JOIN spalten s ON t.spaltenid = s.id AND s.boardsid = ? AND t.geloescht = 0 AND s.geloescht = 0', [$boardId])
             ->getCustomResultObject(Task::class);
     }
 
@@ -35,7 +34,7 @@ class TasksModel extends Model
                 FROM tasks t JOIN spalten s ON t.spaltenid = s.id
                 JOIN personen p ON t.personenid = p.id
                 JOIN taskarten ta ON t.taskartenid = ta.id
-                WHERE s.boardsid = ?
+                WHERE s.boardsid = ? AND t.geloescht = 0 AND s.geloescht = 0
                 ORDER BY t.sortid', [$boardId])
             ->getCustomResultObject(DisplayTask::class);
     }
@@ -53,12 +52,18 @@ class TasksModel extends Model
      */
     public function getAllBoards(): array
     {
-        return $this->db->query('SELECT * FROM boards ORDER BY board')->getCustomResultObject(Board::class);
+        return $this->db->query('SELECT * FROM boards WHERE geloescht = 0 ORDER BY board')->getCustomResultObject(Board::class);
+    }
+
+    public function getFirstBoard(): Board | null
+    {
+        $result = $this->db->query('SELECT * FROM boards WHERE geloescht = 0 ORDER BY board LIMIT 1')->getRowArray(0);
+        return $result ? Board::fromArray($result) : null;
     }
 
     public function getBoard(int $boardId): Board | null
     {
-        $result = $this->db->query('SELECT * FROM boards WHERE id = ?', [$boardId])->getRowArray(0);
+        $result = $this->db->query('SELECT * FROM boards WHERE id = ? AND geloescht = 0', [$boardId])->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
     }
 
@@ -66,17 +71,22 @@ class TasksModel extends Model
     {
         $result = $this->db->query('
                 SELECT b.*
-                FROM (SELECT spaltenid FROM tasks WHERE id = ?) AS t
-                JOIN spalten s ON s.id = t.spaltenid
-                JOIN boards b ON b.id = s.boardsid', [$taskId])->getRowArray(0);
+                FROM (SELECT spaltenid FROM tasks WHERE id = ? AND geloescht = 0) AS t
+                JOIN spalten s ON s.id = t.spaltenid AND s.geloescht = 0
+                JOIN boards b ON b.id = s.boardsid AND b.geloescht = 0', [$taskId])->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
     }
 
     public function getBoardFromColumn(int $columnId): Board | null
     {
         $result = $this->db->query('
-                SELECT b.* FROM spalten s JOIN boards b on b.id = s.boardsid WHERE s.id = ?', [$columnId])->getRowArray(0);
+                SELECT b.* FROM spalten s JOIN boards b on s.id = ? AND b.id = s.boardsid AND s.geloescht = 0 AND b.geloescht = 0', [$columnId])->getRowArray(0);
         return $result ? Board::fromArray($result) : null;
+    }
+
+    public function checkBoard(int $boardId): bool
+    {
+        return $this->db->query('SELECT EXISTS(SELECT 1 FROM boards WHERE id = ? AND geloescht = 0) AS res', [$boardId])->getRowArray(0)['res'] === '1';
     }
 
     /**
@@ -87,17 +97,18 @@ class TasksModel extends Model
         return $this->db->query('
                 SELECT b.*, COALESCE(nc.numcols, 0) AS numcols, COALESCE(nc.numtasks, 0) AS numtasks
                 FROM
-                    boards b
-                    LEFT JOIN (
+                    (SELECT * FROM boards WHERE geloescht = 0) b
+                        LEFT JOIN (
                         SELECT DISTINCT c.boardsid, COUNT(c.boardsid) OVER(PARTITION BY c.boardsid) AS numcols, SUM(c.numtasks) OVER(PARTITION BY c.boardsid) AS numtasks
-                        FROM (SELECT DISTINCT s.id, s.boardsid, COUNT(t.id) OVER(PARTITION BY s.id) AS numtasks FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid) c
-                    ) nc ON b.id = nc.boardsid ORDER BY b.board')
+                        FROM (SELECT DISTINCT s.id, s.boardsid, COUNT(t.id) OVER(PARTITION BY s.id) AS numtasks FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid AND t.geloescht = 0
+                              WHERE s.geloescht = 0) c
+    ) nc ON b.id = nc.boardsid ORDER BY b.board')
             ->getCustomResultObject(DisplayBoard::class);
     }
 
     public function getColumn(int $columnId): Column | null
     {
-        $result = $this->db->query('SELECT * FROM spalten WHERE id = ?', [$columnId])->getRowArray(0);
+        $result = $this->db->query('SELECT * FROM spalten WHERE id = ? AND geloescht = 0', [$columnId])->getRowArray(0);
         return $result ? Column::fromArray($result) : null;
     }
 
@@ -106,7 +117,7 @@ class TasksModel extends Model
      */
     public function getColsFromBoard(int $boardId): array
     {
-        return $this->db->query('SELECT * FROM spalten WHERE boardsid = ? ORDER BY sortid', [$boardId])
+        return $this->db->query('SELECT * FROM spalten WHERE boardsid = ? AND geloescht = 0 ORDER BY sortid', [$boardId])
             ->getCustomResultObject(Column::class);
     }
 
@@ -117,7 +128,7 @@ class TasksModel extends Model
     {
         return $this->db->query('
                 SELECT DISTINCT s.*, COUNT(t.id) OVER(PARTITION BY s.id) AS numtasks
-                FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid WHERE boardsid = ? ORDER BY s.sortid', [$boardId])
+                FROM spalten s LEFT JOIN tasks t ON s.id = t.spaltenid AND t.geloescht = 0 WHERE boardsid = ? AND s.geloescht = 0 ORDER BY s.sortid', [$boardId])
             ->getCustomResultObject(DisplayColumn::class);
     }
 
@@ -131,7 +142,7 @@ class TasksModel extends Model
 
     public function getTask(int $taskId): Task | null
     {
-        $result = $this->db->query('SELECT * FROM tasks WHERE id = ?', [$taskId])->getRowArray(0);
+        $result = $this->db->query('SELECT * FROM tasks WHERE id = ? AND geloescht = 0', [$taskId])->getRowArray(0);
         return $result ? Task::fromArray($result) : null;
     }
 
@@ -169,7 +180,6 @@ class TasksModel extends Model
         $reminderDateString = $task->remindDate->format('Y-m-d H:i:s');
         $useReminder = (int)$task->useReminder;
         $isDone = (int)$task->isDone;
-        $isDeleted = (int)$task->isDeleted;
 
         return $this->db->query('
                 UPDATE tasks
@@ -180,15 +190,14 @@ class TasksModel extends Model
                     notizen = ?,
                     erinnerungsdatum = ?,
                     erinnerung = ?,
-                    erledigt = ?,
-                    geloescht = ?
-                WHERE id = ?',
-            [$task->userId, $task->typeId, $task->columnId, $task->task, $task->notes, $reminderDateString, $useReminder, $isDone, $isDeleted, $task->id]);
+                    erledigt = ?
+                WHERE id = ? AND geloescht = 0',
+            [$task->userId, $task->typeId, $task->columnId, $task->task, $task->notes, $reminderDateString, $useReminder, $isDone, $task->id]);
     }
 
     public function removeTask(int $taskId): bool
     {
-        return $this->db->query('DELETE FROM tasks WHERE id = ?', [$taskId]);
+        return $this->db->query('UPDATE tasks SET geloescht = TRUE WHERE id = ?', [$taskId]);
     }
 
     public function insertColumn(Column $column): bool
@@ -216,14 +225,14 @@ class TasksModel extends Model
 
     public function editColumn(Column $column): bool
     {
-        return $this->db->query('UPDATE spalten SET sortid = ?, spalte = ?, spaltenbeschreibung = ? WHERE id = ?',
+        return $this->db->query('UPDATE spalten SET sortid = ?, spalte = ?, spaltenbeschreibung = ? WHERE id = ? AND geloescht = 0',
             [$column->sortId, $column->name, $column->description, $column->id]);
     }
 
     public function removeColumn(int $columnId): bool
     {
         try {
-            return $this->db->query('DELETE FROM spalten WHERE id = ?', [$columnId]);
+            return $this->db->query('UPDATE spalten SET geloescht = TRUE WHERE id = ?', [$columnId]);
         } catch (DatabaseException) {
             return FALSE;
         }
@@ -236,13 +245,13 @@ class TasksModel extends Model
 
     public function editBoard(Board $board): bool
     {
-        return $this->db->query('UPDATE boards SET board = ? WHERE id = ?', [$board->name, $board->id]);
+        return $this->db->query('UPDATE boards SET board = ? WHERE id = ? AND geloescht = 0', [$board->name, $board->id]);
     }
 
     public function removeBoard(int $boardId): bool
     {
         try {
-            return $this->db->query('DELETE FROM boards WHERE id = ?', [$boardId]);
+            return $this->db->query('UPDATE boards SET geloescht = TRUE WHERE id = ?', [$boardId]);
         } catch (DatabaseException) {
             return FALSE;
         }

@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 13. Feb 2024 um 16:01
--- Server-Version: 10.4.28-MariaDB
--- PHP-Version: 8.2.4
+-- Generation Time: Feb 17, 2024 at 07:22 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,39 +18,48 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Datenbank: `taskboards`
+-- Database: `taskboards`
 --
 
 DELIMITER $$
 --
--- Prozeduren
+-- Procedures
 --
 CREATE PROCEDURE `create_col` (IN `boardid` INT, IN `name` VARCHAR(256) CHARSET utf8mb4, IN `description` VARCHAR(512) CHARSET utf8mb4)  SQL SECURITY INVOKER BEGIN
 
     DECLARE maxsortid INT;
+    START TRANSACTION;
 
-    SELECT MAX(s.sortid) INTO maxsortid FROM spalten s WHERE s.boardsid = boardid;
+    SELECT COALESCE(MAX(s.sortid), -1) INTO maxsortid FROM spalten s WHERE s.boardsid = boardid;
 
     INSERT INTO spalten (boardsid, sortid, spalte, spaltenbeschreibung)
     VALUES (boardid, maxsortid + 1, name, description);
-
+    COMMIT;
 END$$
 
 CREATE PROCEDURE `create_task` (IN `userid` INT, IN `typeid` INT, IN `columnid` INT, IN `name` VARCHAR(256) CHARSET utf8mb4, IN `createdate` DATE, IN `reminddate` DATETIME, IN `usereminder` BOOLEAN, IN `notes` TEXT CHARSET utf8mb4)  SQL SECURITY INVOKER BEGIN
 
-  DECLARE maxsortid INT;
+    DECLARE maxsortid INT;
+    START TRANSACTION;
 
-  SELECT MAX(t.sortid) INTO maxsortid FROM tasks t WHERE t.spaltenid = columnid;
+    SELECT COALESCE(MAX(t.sortid), -1) INTO maxsortid FROM tasks t WHERE t.spaltenid = columnid;
 
-  INSERT INTO tasks (personenid, taskartenid, spaltenid, sortid, tasks, erstelldatum, erinnerungsdatum, erinnerung, notizen, erledigt, geloescht)
-  VALUES (userid, typeid, columnid, maxsortid + 1, name, createdate, reminddate, usereminder, notes, 0, 0);
-
+    INSERT INTO tasks (personenid, taskartenid, spaltenid, sortid, tasks, erstelldatum, erinnerungsdatum, erinnerung, notizen)
+    VALUES (userid, typeid, columnid, maxsortid + 1, name, createdate, reminddate, usereminder, notes);
+    COMMIT;
 END$$
 
-CREATE  PROCEDURE `move_col` (IN `colid` INT, IN `siblingid` INT, IN `targetbrd` INT)  SQL SECURITY INVOKER BEGIN
+CREATE PROCEDURE `delete_marked` ()  SQL SECURITY INVOKER BEGIN
+DELETE t FROM tasks t JOIN spalten s on t.spaltenid = s.id JOIN boards b ON s.boardsid = b.id WHERE t.geloescht != 0 OR s.geloescht != 0 OR b.geloescht != 0;
+DELETE s FROM spalten s JOIN boards b ON s.boardsid = b.id WHERE s.geloescht != 0 OR b.geloescht != 0;
+DELETE b FROM boards b WHERE b.geloescht != 0;
+END$$
+
+CREATE PROCEDURE `move_col` (IN `colid` INT, IN `siblingid` INT, IN `targetbrd` INT)  SQL SECURITY INVOKER BEGIN
 
   DECLARE newsort INT;
   DECLARE newbrd INT;
+  START TRANSACTION;
 
   IF siblingid <= 0
   THEN
@@ -71,13 +80,14 @@ CREATE  PROCEDURE `move_col` (IN `colid` INT, IN `siblingid` INT, IN `targetbrd`
       SET newsort = newsort + 1;
   END IF;
   UPDATE spalten s3 SET s3.sortid = newsort, s3.boardsid = newbrd WHERE s3.id = colid;
-
+  COMMIT;
 END$$
 
 CREATE PROCEDURE `move_task` (IN `taskid` INT, IN `siblingid` INT, IN `targetcol` INT)  SQL SECURITY INVOKER BEGIN
 
   DECLARE newsort INT;
   DECLARE newcol INT;
+  START TRANSACTION;
 
   IF siblingid <= 0
   THEN
@@ -98,7 +108,12 @@ CREATE PROCEDURE `move_task` (IN `taskid` INT, IN `siblingid` INT, IN `targetcol
       SET newsort = newsort + 1;
   END IF;
   UPDATE tasks t3 SET t3.sortid = newsort, t3.spaltenid = newcol WHERE t3.id = taskid;
+  COMMIT;
+END$$
 
+CREATE PROCEDURE `sanitize_sortids` ()  SQL SECURITY INVOKER BEGIN
+UPDATE tasks t JOIN (SELECT id, ROW_NUMBER() OVER(PARTITION BY spaltenid ORDER BY sortid) AS i FROM tasks) rn ON rn.id = t.id SET t.sortid = rn.i - 1;
+UPDATE spalten s JOIN (SELECT id, ROW_NUMBER() OVER(PARTITION BY boardsid ORDER BY sortid) AS i FROM spalten) rn ON rn.id = s.id SET s.sortid = rn.i - 1;
 END$$
 
 DELIMITER ;
@@ -106,26 +121,27 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `boards`
+-- Table structure for table `boards`
 --
 
 CREATE TABLE `boards` (
   `id` int(11) NOT NULL,
-  `board` varchar(256) NOT NULL
+  `board` varchar(256) NOT NULL,
+  `geloescht` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `boards`
+-- Dumping data for table `boards`
 --
 
-INSERT INTO `boards` (`id`, `board`) VALUES
-(1, 'Mainboard'),
-(2, 'Snowboard');
+INSERT INTO `boards` (`id`, `board`, `geloescht`) VALUES
+(1, 'Mainboard', 0),
+(2, 'Snowboard', 0);
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `personen`
+-- Table structure for table `personen`
 --
 
 CREATE TABLE `personen` (
@@ -137,7 +153,7 @@ CREATE TABLE `personen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `personen`
+-- Dumping data for table `personen`
 --
 
 INSERT INTO `personen` (`id`, `vorname`, `name`, `email`, `passwort`) VALUES
@@ -146,12 +162,13 @@ INSERT INTO `personen` (`id`, `vorname`, `name`, `email`, `passwort`) VALUES
 (3, 'Ernst', 'Lustig', 'el@mail.de', 'pa55wort'),
 (4, 'Gernhardt', 'Reinholzen', 'gr@mail.de', 'bo$$man69'),
 (5, 'Jana', 'Türlich', 'jt@mail.de', 'naklar1'),
-(6, 'Albert', 'Rum', 'ar@mail.de', 'nurSpa55');
+(6, 'Albert', 'Rum', 'ar@mail.de', 'nurSpa55'),
+(7, 'Hugh', 'Mungus', 'hm@mail.com', 'what?');
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `spalten`
+-- Table structure for table `spalten`
 --
 
 CREATE TABLE `spalten` (
@@ -159,25 +176,26 @@ CREATE TABLE `spalten` (
   `boardsid` int(11) NOT NULL,
   `sortid` int(11) NOT NULL DEFAULT 0,
   `spalte` varchar(256) NOT NULL,
-  `spaltenbeschreibung` varchar(512) NOT NULL
+  `spaltenbeschreibung` varchar(512) NOT NULL,
+  `geloescht` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `spalten`
+-- Dumping data for table `spalten`
 --
 
-INSERT INTO `spalten` (`id`, `boardsid`, `sortid`, `spalte`, `spaltenbeschreibung`) VALUES
-(1, 1, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen'),
-(2, 1, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin'),
-(3, 1, 3, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen'),
-(4, 2, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen'),
-(5, 2, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin'),
-(6, 2, 2, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen');
+INSERT INTO `spalten` (`id`, `boardsid`, `sortid`, `spalte`, `spaltenbeschreibung`, `geloescht`) VALUES
+(1, 1, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen', 0),
+(2, 1, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin', 0),
+(3, 1, 2, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen', 0),
+(4, 2, 0, 'Offen', 'geöffnet, offen stehend, aufgeschlossen, nicht verschlossen', 0),
+(5, 2, 1, 'In Bearbeitung', 'Be|ar|bei|tung, die; Substantiv, feminin', 0),
+(6, 2, 2, 'Erledigt', 'abgearbeitet, abgehetzt, abgekämpft, angeschlagen', 0);
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `taskarten`
+-- Table structure for table `taskarten`
 --
 
 CREATE TABLE `taskarten` (
@@ -188,7 +206,7 @@ CREATE TABLE `taskarten` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `taskarten`
+-- Dumping data for table `taskarten`
 --
 
 INSERT INTO `taskarten` (`id`, `taskart`, `taskartenicon`, `taskarteniconunicode`) VALUES
@@ -203,7 +221,7 @@ INSERT INTO `taskarten` (`id`, `taskart`, `taskartenicon`, `taskarteniconunicode
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `tasks`
+-- Table structure for table `tasks`
 --
 
 CREATE TABLE `tasks` (
@@ -217,55 +235,55 @@ CREATE TABLE `tasks` (
   `erinnerungsdatum` datetime NOT NULL,
   `erinnerung` tinyint(1) NOT NULL,
   `notizen` text NOT NULL,
-  `erledigt` tinyint(1) NOT NULL,
-  `geloescht` tinyint(1) NOT NULL
+  `erledigt` tinyint(1) NOT NULL DEFAULT 0,
+  `geloescht` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `tasks`
+-- Dumping data for table `tasks`
 --
 
 INSERT INTO `tasks` (`id`, `personenid`, `taskartenid`, `spaltenid`, `sortid`, `tasks`, `erstelldatum`, `erinnerungsdatum`, `erinnerung`, `notizen`, `erledigt`, `geloescht`) VALUES
 (1, 4, 1, 2, 0, 'Internet Deinstallieren', '2024-01-08', '2024-01-10 12:00:00', 0, 'Genug ist genug.', 0, 0),
-(2, 1, 1, 1, -2, 'Faulenzen', '2024-01-08', '2024-02-15 03:00:00', 1, 'Essenziell!', 0, 0),
-(3, 5, 1, 3, 0, 'Chillen', '2023-12-01', '2024-01-01 00:00:00', 0, 'Wichtig!', 1, 0),
-(4, 2, 7, 1, -3, 'Relaxen', '2024-01-10', '2024-01-10 18:59:00', 1, 'Einfach mal die Füßchen hochlegen.', 0, 0),
+(2, 1, 1, 3, 0, 'Faulenzen', '2024-01-08', '2024-02-15 03:00:00', 1, 'Essenziell!', 0, 0),
+(3, 5, 1, 1, 0, 'Chillen', '2023-12-01', '2024-01-01 00:00:00', 0, 'Wichtig!', 0, 0),
+(4, 2, 7, 1, 2, 'Relaxen', '2024-01-10', '2024-01-10 18:59:00', 1, 'Einfach mal die Füßchen hochlegen.', 0, 0),
 (6, 6, 1, 5, 0, 'Schnee von gestern loswerden', '2024-01-10', '2024-01-10 19:00:00', 1, 'Art von Schnee: unspezifiziert.\r\nadawdawd\r\nawdqwadfawfawfaw\r\nawfaw\r\nfaw\r\nfawf\r\nawf\r\n\r\nawffwawf\r\nawf\r\naw\r\nfaw\r\nfawfawf\r\nawf\r\nawf', 0, 0),
 (7, 3, 1, 6, 0, 'Einen Task erledigen', '2024-01-10', '2024-01-10 19:00:00', 1, 'Ist erledigt!', 0, 0),
-(8, 4, 1, 4, 2, 'Einkaufliste', '2024-01-10', '2024-01-10 19:00:00', 1, 'Einkaufliste für letzte Woche schreiben.', 0, 0),
-(13, 6, 4, 3, 1, 'jep', '2024-02-03', '2024-02-03 17:29:00', 0, 'this is fine', 0, 0);
+(8, 4, 1, 4, 0, 'Einkaufliste', '2024-01-10', '2024-01-10 19:00:00', 1, 'Einkaufliste für letzte Woche schreiben.', 0, 0),
+(13, 6, 4, 1, 1, 'jep', '2024-02-03', '2024-02-03 17:29:00', 0, 'this is fine', 0, 0);
 
 --
--- Indizes der exportierten Tabellen
+-- Indexes for dumped tables
 --
 
 --
--- Indizes für die Tabelle `boards`
+-- Indexes for table `boards`
 --
 ALTER TABLE `boards`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `personen`
+-- Indexes for table `personen`
 --
 ALTER TABLE `personen`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `spalten`
+-- Indexes for table `spalten`
 --
 ALTER TABLE `spalten`
   ADD PRIMARY KEY (`id`),
   ADD KEY `cnst_boards_spalten` (`boardsid`);
 
 --
--- Indizes für die Tabelle `taskarten`
+-- Indexes for table `taskarten`
 --
 ALTER TABLE `taskarten`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indizes für die Tabelle `tasks`
+-- Indexes for table `tasks`
 --
 ALTER TABLE `tasks`
   ADD PRIMARY KEY (`id`),
@@ -274,56 +292,69 @@ ALTER TABLE `tasks`
   ADD KEY `cnst_tasks_taskarten` (`taskartenid`);
 
 --
--- AUTO_INCREMENT für exportierte Tabellen
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT für Tabelle `boards`
+-- AUTO_INCREMENT for table `boards`
 --
 ALTER TABLE `boards`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
-
---
--- AUTO_INCREMENT für Tabelle `personen`
---
-ALTER TABLE `personen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT für Tabelle `spalten`
---
-ALTER TABLE `spalten`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT für Tabelle `taskarten`
+-- AUTO_INCREMENT for table `personen`
+--
+ALTER TABLE `personen`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `spalten`
+--
+ALTER TABLE `spalten`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+
+--
+-- AUTO_INCREMENT for table `taskarten`
 --
 ALTER TABLE `taskarten`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT für Tabelle `tasks`
+-- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
--- Constraints der exportierten Tabellen
+-- Constraints for dumped tables
 --
 
 --
--- Constraints der Tabelle `spalten`
+-- Constraints for table `spalten`
 --
 ALTER TABLE `spalten`
   ADD CONSTRAINT `cnst_boards_spalten` FOREIGN KEY (`boardsid`) REFERENCES `boards` (`id`);
 
 --
--- Constraints der Tabelle `tasks`
+-- Constraints for table `tasks`
 --
 ALTER TABLE `tasks`
   ADD CONSTRAINT `cnst_tasks_personen` FOREIGN KEY (`personenid`) REFERENCES `personen` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `cnst_tasks_spalte` FOREIGN KEY (`spaltenid`) REFERENCES `spalten` (`id`),
   ADD CONSTRAINT `cnst_tasks_taskarten` FOREIGN KEY (`taskartenid`) REFERENCES `taskarten` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+DELIMITER $$
+--
+-- Events
+--
+CREATE EVENT `periodic_delete` ON SCHEDULE EVERY 1 WEEK ON COMPLETION NOT PRESERVE ENABLE DO CALL delete_marked()$$
+
+CREATE EVENT `periodic_sortid_cleanup` ON SCHEDULE EVERY 1 WEEK ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+UPDATE tasks t JOIN (SELECT id, ROW_NUMBER() OVER(PARTITION BY spaltenid ORDER BY sortid) AS i FROM tasks) rn ON rn.id = t.id SET t.sortid = rn.i - 1;
+UPDATE spalten s JOIN (SELECT id, ROW_NUMBER() OVER(PARTITION BY boardsid ORDER BY sortid) AS i FROM spalten) rn ON rn.id = s.id SET s.sortid = rn.i - 1;
+END$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

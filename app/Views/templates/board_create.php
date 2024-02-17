@@ -19,12 +19,13 @@ if (!isset($errorMessages))
 $hasErrors = !empty($errorMessages);
 ?>
 
-<div class="container pb-5">
-    <div class="card mt-5 no-border shadow-box">
+<div class="container">
+    <div class="card no-border shadow-box">
         <div class="card-header">
-            <div class="d-flex justify-content-between">
+            <div class="d-flex">
                 <?php if ($showDelete): ?>
                     <div class="h3">Board löschen</div>
+                    <img class="h3" src="<?=base_url('Sure.gif')?>" alt="are you sure?" style="height: 1em; width: auto; animation: appear 5s;">
                 <?php elseif ($showCreate): ?>
                     <div class="h3">Board erstellen</div>
                 <?php else: ?>
@@ -37,12 +38,12 @@ $hasErrors = !empty($errorMessages);
                 <div class="col-12">
                     <div class="card-content">
                         <div class="card-body">
-                            <form id="form" action="<?= esc($submitURL) ?>" method="post">
-                                <fieldset <?php if ($showDelete) echo 'disabled'; ?>>
+                            <form id="form" action="<?=esc($submitURL)?>" method="post">
+                                <fieldset <?= ($showDelete) ? 'disabled' : '' ?>>
                                     <!-- Board -->
                                     <div class="form-group has-validation mb-4 mt-0">
                                         <label for="board" class="form-label mb-0">Board:</label>
-                                        <input type="text" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['board'])) echo 'is-invalid'; ?> fs-input"
+                                        <input type="text" class="form-control rounded <?= ($hasErrors && isset($errorMessages['board'])) ? 'is-invalid' : '' ?> fs-input"
                                                id="board" name="board" placeholder="Namen eingeben..."
                                                value="<?php if (isset($oldPost['board'])) echo $oldPost['board']; elseif (!$showCreate) echo esc($activeBoard->name); ?>"/>
                                         <?= InvalidFeedback::render($errorMessages, 'board') ?>
@@ -61,7 +62,7 @@ $hasErrors = !empty($errorMessages);
                                                 <span class="d-none d-sm-inline-flex">Speichern</span>
                                             </button>
                                         <?php endif; ?>
-                                        <a href="<?= esc($abortURL) ?>">
+                                        <a href="<?=esc($abortURL)?>">
                                             <button class="btn btn-warning mb-2" type="button">
                                                 <i class="fas fa-window-close"></i>
                                                 <span class="d-none d-sm-inline-flex">Abbrechen</span>

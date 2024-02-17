@@ -1,5 +1,5 @@
-<footer class="footer mt-auto bg-primary text-white" data-bs-theme="dark">
-    <div class="container-fluid mt-3">
+<footer class="bg-primary text-white pt-3">
+    <div class="container-fluid">
         <div class="row m-0">
             <div class="col">
                 <p class="p-2 pt-1 pb-0">&copy;Web Entwicklung <?= (new DateTime())->format('Y') ?></p>

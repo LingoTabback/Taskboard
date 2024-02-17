@@ -42,12 +42,13 @@ if (!isset($errorMessages))
 $hasErrors = !empty($errorMessages);
 ?>
 
-<div class="container pb-5">
-    <div class="card mt-5 no-border shadow-box">
+<div class="container">
+    <div class="card no-border shadow-box">
         <div class="card-header">
-            <div class="d-flex justify-content-between">
+            <div class="d-flex">
                 <?php if ($showDelete): ?>
                     <div class="h3">Task löschen</div>
+                    <img class="h3" src="<?=base_url('Sure.gif')?>" alt="are you sure" style="height: 1em; width: auto; animation: appear 5s;">
                 <?php elseif ($showCreate): ?>
                     <div class="h3">Task erstellen</div>
                 <?php else: ?>
@@ -60,22 +61,22 @@ $hasErrors = !empty($errorMessages);
                 <div class="col-12">
                     <div class="card-content">
                         <div class="card-body">
-                            <form id="form" action="<?= esc($submitURL) ?>" method="post">
-                                <fieldset <?php if ($showDelete) echo 'disabled'; ?>>
+                            <form id="form" action="<?=esc($submitURL)?>" method="post">
+                                <fieldset <?= $showDelete ? 'disabled' : '' ?>>
                                     <!-- Task -->
                                     <div class="has-validation">
                                         <label for="task" class="form-label mb-0">Task:</label>
                                         <div class="row">
                                             <div class="mb-4 mt-0 col-sm-8">
-                                                <input type="text" class="form-control rounded <?php if ($hasErrors && isset($errorMessages['task'])) echo 'is-invalid'; ?>"
+                                                <input type="text" class="form-control rounded <?= ($hasErrors && isset($errorMessages['task'])) ? 'is-invalid' : '' ?>"
                                                        id="task" name="task" placeholder="Task eingeben..."
                                                        value="<?php if (isset($oldPost['task'])) echo $oldPost['task']; elseif (!$showCreate) echo esc($activeTask->task); ?>"/>
                                                 <?= InvalidFeedback::render($errorMessages, 'task') ?>
                                             </div>
                                             <div class="mb-4 mt-0 col-sm-4">
-                                                <select name="typeid" id="typeid" class="form-select <?php if ($hasErrors && isset($errorMessages['typeid'])) echo 'is-invalid'; ?>">
+                                                <select name="typeid" id="typeid" class="form-select <?= ($hasErrors && isset($errorMessages['typeid'])) ? 'is-invalid' : '' ?>">
                                                     <?php foreach ($taskTypes as $type): ?>
-                                                        <option value="<?= esc($type->id) ?>" <?php if ($selectedTypeId === $type->id) echo 'selected'; ?>>
+                                                        <option value="<?= esc($type->id) ?>" <?= $selectedTypeId === $type->id ? 'selected' : '' ?>>
                                                             &#x<?= esc($type->iconUnicode) ?>; <?= esc($type->name) ?>
                                                         </option>
                                                     <?php endforeach; ?>
@@ -87,9 +88,9 @@ $hasErrors = !empty($errorMessages);
                                     <!-- Spalte -->
                                     <div class="has-validation mb-4">
                                         <label for="columnid" class="form-label mb-0">Spalte:</label>
-                                        <select name="columnid" id="columnid" class="form-select <?php if ($hasErrors && isset($errorMessages['columnid'])) echo 'is-invalid'; ?>">
+                                        <select name="columnid" id="columnid" class="form-select <?= ($hasErrors && isset($errorMessages['columnid'])) ? 'is-invalid' : '' ?>">
                                             <?php foreach ($columns as $c): ?>
-                                                <option value="<?= esc($c->id) ?>" <?php if ($selectedColId === $c->id) echo 'selected'; ?>><?= esc($c->name) ?></option>
+                                                <option value="<?= esc($c->id) ?>" <?= $selectedColId === $c->id ? 'selected' : '' ?>><?=esc($c->name)?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <?= InvalidFeedback::render($errorMessages, 'columnid') ?>
@@ -97,9 +98,9 @@ $hasErrors = !empty($errorMessages);
                                     <!-- Kontakt -->
                                     <div class="has-validation mb-4">
                                         <label for="personid" class="form-label mb-0">Kontakt:</label>
-                                        <select name="personid" id="personid" class="form-select <?php if ($hasErrors && isset($errorMessages['personid'])) echo 'is-invalid'; ?>">
+                                        <select name="personid" id="personid" class="form-select <?= ($hasErrors && isset($errorMessages['personid'])) ? 'is-invalid' : '' ?>">
                                             <?php foreach ($users as $p): ?>
-                                                <option value="<?= esc($p->id) ?>" <?php if ((isset($oldPost['personid']) && $oldPost['personid'] == $p->id) || !$showCreate && $activeTask->userId === $p->id) echo 'selected'; ?>><?= esc($p->lastName) ?>, <?= esc($p->firstName) ?></option>
+                                                <option value="<?= esc($p->id) ?>" <?= ((isset($oldPost['personid']) && $oldPost['personid'] == $p->id) || !$showCreate && $activeTask->userId === $p->id) ? 'selected' : '' ?>><?=esc($p->lastName)?>, <?=esc($p->firstName)?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <?= InvalidFeedback::render($errorMessages, 'personid') ?>
@@ -113,7 +114,7 @@ $hasErrors = !empty($errorMessages);
                                                     <div class="input-group-text">
                                                         <span title="Erinnerungsdatum" data-bs-toggle="tooltip"><i class="far fa-calendar-alt"></i></span>
                                                     </div>
-                                                    <input type="date" class="form-control rounded-end <?php if ($hasErrors && isset($errorMessages['reminderdate'])) echo 'is-invalid'; ?>"
+                                                    <input type="date" class="form-control rounded-end <?= ($hasErrors && isset($errorMessages['reminderdate'])) ? 'is-invalid' : '' ?>"
                                                            id="reminderdate" name="reminderdate"
                                                            value="<?= $remindDateTime->format('Y-m-d') ?>">
                                                     <?= InvalidFeedback::render($errorMessages, 'reminderdate') ?>
@@ -124,13 +125,13 @@ $hasErrors = !empty($errorMessages);
                                                     <div class="input-group-text">
                                                         <span title="Erinnerungsuhrzeit" data-bs-toggle="tooltip"><i class="far fa-clock"></i></span>
                                                     </div>
-                                                    <input type="time" class="form-control <?php if ($hasErrors && isset($errorMessages['remindertime'])) echo 'is-invalid'; ?>"
+                                                    <input type="time" class="form-control <?= ($hasErrors && isset($errorMessages['remindertime'])) ? 'is-invalid' : '' ?>"
                                                            id="remindertime" name="remindertime"
                                                            value="<?= $remindDateTime->format('H:i') ?>">
                                                     <?= InvalidFeedback::render($errorMessages, 'remindertime') ?>
                                                     <div class="input-group-text">
                                                     <div class="form-check form-switch">
-                                                        <input title="Erinnerung" data-bs-toggle="tooltip" id="reminderuse" name="reminderuse" class="form-check-input" type="checkbox" value="1" <?php if (!$showCreate && $activeTask->useReminder) echo 'checked'; ?>>
+                                                        <input title="Erinnerung" data-bs-toggle="tooltip" id="reminderuse" name="reminderuse" class="form-check-input" type="checkbox" value="1" <?= (!$showCreate && $activeTask->useReminder) ? 'checked' : '' ?>>
                                                     </div>
                                                     </div>
                                                 </div>
@@ -140,7 +141,7 @@ $hasErrors = !empty($errorMessages);
                                     <!-- Notizen -->
                                     <div class="form-group has-validation mb-4">
                                         <label for="notes" class="form-label mb-0">Notizen:</label>
-                                        <textarea class="form-control <?php if ($hasErrors && isset($errorMessages['notes'])) echo 'is-invalid'; ?>"
+                                        <textarea class="form-control <?= ($hasErrors && isset($errorMessages['notes'])) ? 'is-invalid' : '' ?>"
                                                   rows="3" id="notes" name="notes" placeholder="Notizen..."><?php if (isset($oldPost['notes'])) echo $oldPost['notes']; elseif (!$showCreate) echo esc($activeTask->notes) ?></textarea>
                                     </div>
                                 </fieldset>
@@ -157,7 +158,7 @@ $hasErrors = !empty($errorMessages);
                                             <span class="d-none d-sm-inline-flex">Speichern</span>
                                         </button>
                                         <?php endif; ?>
-                                        <a href="<?= esc($abortURL) ?>">
+                                        <a href="<?=esc($abortURL)?>">
                                             <button class="btn btn-warning mb-2" type="button">
                                                 <i class="fas fa-window-close"></i>
                                                 <span class="d-none d-sm-inline-flex">Abbrechen</span>
